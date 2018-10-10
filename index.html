@@ -1,0 +1,35 @@
+<!doctype html>
+<html ng-app=. ng-controller=.>
+
+<head>
+	<title></title>
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/angular-q-state/$q.js"></script>
+	<script>
+		angular.module('.', [])
+			.controller('.', function ($scope, $http) {
+				$scope.connect = () => $scope.$proxyRules = $http.get(`${$scope.endpoint}/proxy-rules`, { withCredentials: true });
+			})
+	</script>
+</head>
+
+<body>
+	<form>target: <input type=text ng-model=endpoint><button ng-click=connect();>connect</button></form>
+	<section ng-if=$proxyRules>
+		<h4>proxy rules</h4>
+		<div ng-if=$proxyRules.pending>loading..</div>
+		<div ng-if=$proxyRules.rejected>error</div>
+		<table ng-if=$proxyRules.resolved>
+			<tr ng-if=$proxyRules.value.data.default!=null>
+				<td>(default)</td>
+				<td>{{$proxyRules.value.data.default}}</td>
+			</tr>
+			<tr ng-repeat="(name,value) in $proxyRules.value.data.rules">
+				<td>{{name}}</td>
+				<td>{{value}}</td>
+			</tr>
+		</table>
+	</section>
+</body>
+
+</html>
