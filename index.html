@@ -12,6 +12,20 @@
 					$scope.$proxyRules = $http.get(`${$scope.endpoint}/proxy-rules`, { withCredentials: true });
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`, { withCredentials: true });
 				};
+				$scope.start = name => {
+					var app = $scope.$app.value.data[name];
+					app.starting = $http.post(`${$scope.endpoint}/app/${name}/start`, undefined, { withCredentials: true });
+					app.starting.then(response => {
+						app.running = true;
+					});
+				};
+				$scope.stop = name => {
+					var app = $scope.$app.value.data[name];
+					app.stopping = $http.post(`${$scope.endpoint}/app/${name}/stop`, undefined, { withCredentials: true });
+					app.stopping.then(response => {
+						app.running = false;
+					});
+				};
 			})
 	</script>
 </head>
@@ -42,6 +56,15 @@
 				<td>{{name||"(default)"}}</td>
 				<td>{{value.module}}</td>
 				<td>{{value.arguments}}</td>
+				<td>
+					{{value.running?"running":"not running"}}
+					<span ng-if=value.stopping&&value.stopping.pending>(stopping..)</span>
+					<span ng-if=value.stopping&&value.stopping.rejected>(stop failed)</span>
+					<span ng-if=value.starting&&value.starting.pending>(starting..)</span>
+					<span ng-if=value.starting&&value.starting.rejected>(start failed)</span>
+					<button ng-if=value.running&&!value.stopping.pending ng-click=stop(name);>⏹</button>
+					<button ng-if=!value.running&&!value.starting.pending ng-click=start(name);>⏵</button>
+				</td>
 			</tr>
 		</table>
 	</section>
