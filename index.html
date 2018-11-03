@@ -12,6 +12,13 @@
 					$scope.$proxyRules = $http.get(`${$scope.endpoint}/proxy-rules`, { withCredentials: true });
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`, { withCredentials: true });
 				};
+				$scope.proxyRuleDeleting = {};
+				$scope.deleteProxyRule = name => {
+					$scope.proxyRuleDeleting[name] = $http.delete(`${$scope.endpoint}/proxy-rules/${encodeURIComponent(name || 'default')}`, { withCredentials: true });
+					$scope.proxyRuleDeleting[name].then(response => {
+						delete $scope.$proxyRules.value.data[name];
+					});
+				};
 				$scope.start = name => {
 					var app = $scope.$app.value.data[name];
 					app.starting = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/start`, undefined, { withCredentials: true });
@@ -40,6 +47,11 @@
 			<tr ng-repeat="(name,value) in $proxyRules.value.data">
 				<td>{{name||"(default)"}}</td>
 				<td>{{value}}</td>
+				<td>
+					<span ng-if=proxyRuleDeleting[name].pending>(deleting..)</span>
+					<span ng-if=proxyRuleDeleting[name].rejected>(delete failed)</span>
+					<button ng-if=!proxyRuleDeleting[name].pending ng-click=deleteProxyRule(name);>❌</button>
+				</td>
 			</tr>
 		</table>
 	</section>
