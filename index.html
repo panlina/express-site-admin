@@ -19,6 +19,13 @@
 						delete $scope.$proxyRules.value.data[name];
 					});
 				};
+				$scope.deleteApp = name => {
+					var app = $scope.$app.value.data[name];
+					app.deleting = $http.delete(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`, { withCredentials: true });
+					app.deleting.then(response => {
+						delete $scope.$app.value.data[name];
+					});
+				};
 				$scope.start = name => {
 					var app = $scope.$app.value.data[name];
 					app.starting = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/start`, undefined, { withCredentials: true });
@@ -72,6 +79,9 @@
 					<span ng-if=value.starting.rejected>(start failed)</span>
 					<button ng-if=value.running&&!value.stopping.pending ng-click=stop(name);>⏹</button>
 					<button ng-if=!value.running&&!value.starting.pending ng-click=start(name);>⏵</button>
+					<span ng-if=value.deleting.pending>(deleting..)</span>
+					<span ng-if=value.deleting.rejected>(delete failed)</span>
+					<button ng-if=!value.deleting.pending ng-click=deleteApp(name);>❌</button>
 				</td>
 			</tr>
 		</table>
