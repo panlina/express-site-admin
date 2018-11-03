@@ -14,14 +14,14 @@
 				};
 				$scope.start = name => {
 					var app = $scope.$app.value.data[name];
-					app.starting = $http.post(`${$scope.endpoint}/app/${name || 'default'}/start`, undefined, { withCredentials: true });
+					app.starting = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/start`, undefined, { withCredentials: true });
 					app.starting.then(response => {
 						app.running = true;
 					});
 				};
 				$scope.stop = name => {
 					var app = $scope.$app.value.data[name];
-					app.stopping = $http.post(`${$scope.endpoint}/app/${name || 'default'}/stop`, undefined, { withCredentials: true });
+					app.stopping = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/stop`, undefined, { withCredentials: true });
 					app.stopping.then(response => {
 						app.running = false;
 					});
