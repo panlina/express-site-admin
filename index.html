@@ -41,6 +41,11 @@
 					});
 				};
 			})
+			.filter('notEmpty', () => object => {
+				for (var key in object)
+					return true;
+				return false;
+			})
 	</script>
 </head>
 
@@ -50,7 +55,8 @@
 		<h4>proxy rules</h4>
 		<div ng-if=$proxyRules.pending>loading..</div>
 		<div ng-if=$proxyRules.rejected>error</div>
-		<table ng-if=$proxyRules.resolved>
+		<div ng-if=!($proxyRules.value.data|notEmpty)>(no proxy rules)</div>
+		<table ng-if=$proxyRules.resolved&&($proxyRules.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $proxyRules.value.data">
 				<td>{{name||"(default)"}}</td>
 				<td>{{value}}</td>
@@ -66,7 +72,8 @@
 		<h4>app</h4>
 		<div ng-if=$app.pending>loading..</div>
 		<div ng-if=$app.rejected>error</div>
-		<table ng-if=$app.resolved>
+		<div ng-if=!($app.value.data|notEmpty)>(no apps)</div>
+		<table ng-if=$app.resolved&&($app.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $app.value.data">
 				<td>{{name||"(default)"}}</td>
 				<td>{{value.module}}</td>
