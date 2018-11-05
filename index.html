@@ -9,14 +9,14 @@
 		angular.module('.', [])
 			.controller('.', function ($scope, $http) {
 				$scope.connect = () => {
-					$scope.$proxyRules = $http.get(`${$scope.endpoint}/proxy-rules`, { withCredentials: true });
+					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule`, { withCredentials: true });
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`, { withCredentials: true });
 				};
 				$scope.proxyRuleDeleting = {};
 				$scope.deleteProxyRule = name => {
-					$scope.proxyRuleDeleting[name] = $http.delete(`${$scope.endpoint}/proxy-rules/${encodeURIComponent(name || 'default')}`, { withCredentials: true });
+					$scope.proxyRuleDeleting[name] = $http.delete(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, { withCredentials: true });
 					$scope.proxyRuleDeleting[name].then(response => {
-						delete $scope.$proxyRules.value.data[name];
+						delete $scope.$proxyRule.value.data[name];
 					});
 				};
 				$scope.deleteApp = name => {
@@ -51,13 +51,13 @@
 
 <body>
 	<form>target: <input type=text ng-model=endpoint><button ng-click=connect();>connect</button></form>
-	<section ng-if=$proxyRules>
+	<section ng-if=$proxyRule>
 		<h4>proxy rules</h4>
-		<div ng-if=$proxyRules.pending>loading..</div>
-		<div ng-if=$proxyRules.rejected>error</div>
-		<div ng-if=!($proxyRules.value.data|notEmpty)>(no proxy rules)</div>
-		<table ng-if=$proxyRules.resolved&&($proxyRules.value.data|notEmpty)>
-			<tr ng-repeat="(name,value) in $proxyRules.value.data">
+		<div ng-if=$proxyRule.pending>loading..</div>
+		<div ng-if=$proxyRule.rejected>error</div>
+		<div ng-if=!($proxyRule.value.data|notEmpty)>(no proxy rules)</div>
+		<table ng-if=$proxyRule.resolved&&($proxyRule.value.data|notEmpty)>
+			<tr ng-repeat="(name,value) in $proxyRule.value.data">
 				<td>{{name||"(default)"}}</td>
 				<td>{{value}}</td>
 				<td>
