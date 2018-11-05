@@ -9,7 +9,7 @@
 		angular.module('.', [])
 			.controller('.', function ($scope, $http) {
 				$scope.connect = () => {
-					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule`, { withCredentials: true });
+					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`, { withCredentials: true });
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`, { withCredentials: true });
 				};
 				$scope.proxyRuleDeleting = {};
