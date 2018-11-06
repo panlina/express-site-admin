@@ -8,6 +8,7 @@
 	<script>
 		angular.module('.', [])
 			.controller('.', function ($scope, $http) {
+				$scope.endpoint = "http://localhost:9001";
 				$scope.connect = () => {
 					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`, { withCredentials: true });
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`, { withCredentials: true });
@@ -69,7 +70,7 @@
 		</table>
 	</section>
 	<section ng-if=$app>
-		<h4>app</h4>
+		<h4>apps</h4>
 		<div ng-if=$app.pending>loading..</div>
 		<div ng-if=$app.rejected>error</div>
 		<div ng-if=!($app.value.data|notEmpty)>(no apps)</div>
