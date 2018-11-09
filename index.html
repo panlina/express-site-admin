@@ -10,33 +10,33 @@
 			.controller('.', function ($scope, $http) {
 				$scope.endpoint = "http://localhost:9001";
 				$scope.connect = () => {
-					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`, { withCredentials: true });
-					$scope.$app = $http.get(`${$scope.endpoint}/app/`, { withCredentials: true });
+					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`);
+					$scope.$app = $http.get(`${$scope.endpoint}/app/`);
 				};
 				$scope.proxyRuleDeleting = {};
 				$scope.deleteProxyRule = name => {
-					$scope.proxyRuleDeleting[name] = $http.delete(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, { withCredentials: true });
+					$scope.proxyRuleDeleting[name] = $http.delete(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`);
 					$scope.proxyRuleDeleting[name].then(response => {
 						delete $scope.$proxyRule.value.data[name];
 					});
 				};
 				$scope.deleteApp = name => {
 					var app = $scope.$app.value.data[name];
-					app.deleting = $http.delete(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`, { withCredentials: true });
+					app.deleting = $http.delete(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`);
 					app.deleting.then(response => {
 						delete $scope.$app.value.data[name];
 					});
 				};
 				$scope.start = name => {
 					var app = $scope.$app.value.data[name];
-					app.starting = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/start`, undefined, { withCredentials: true });
+					app.starting = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/start`);
 					app.starting.then(response => {
 						app.running = true;
 					});
 				};
 				$scope.stop = name => {
 					var app = $scope.$app.value.data[name];
-					app.stopping = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/stop`, undefined, { withCredentials: true });
+					app.stopping = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/stop`);
 					app.stopping.then(response => {
 						app.running = false;
 					});
@@ -46,6 +46,16 @@
 				for (var key in object)
 					return true;
 				return false;
+			})
+			.config($httpProvider => {
+				$httpProvider.interceptors.push(
+					() => ({
+						request: config => {
+							config.withCredentials = true;
+							return config;
+						}
+					})
+				);
 			})
 	</script>
 </head>
