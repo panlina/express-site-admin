@@ -57,7 +57,27 @@
 					})
 				);
 			})
+			.directive('errorLink', () => ({
+				restrict: 'A',
+				scope: { errorLink: '=' },
+				link: (scope, element, attr) => {
+					element.on('click', () => {
+						alert(
+							scope.errorLink.value.status > 0 ?
+								scope.errorLink.value.data :
+								"Didn't get response from server."
+						);
+					});
+				}
+			}))
 	</script>
+	<style>
+		[error-link] {
+			color: red;
+			text-decoration: underline;
+			cursor: pointer;
+		}
+	</style>
 </head>
 
 <body>
@@ -65,7 +85,7 @@
 	<section ng-if=$proxyRule>
 		<h4>proxy rules</h4>
 		<div ng-if=$proxyRule.pending>loading..</div>
-		<div ng-if=$proxyRule.rejected>error</div>
+		<div ng-if=$proxyRule.rejected error-link=$proxyRule>error</div>
 		<div ng-if="$proxyRule.value.status>0&&!($proxyRule.value.data|notEmpty)">(no proxy rules)</div>
 		<table ng-if=$proxyRule.resolved&&($proxyRule.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $proxyRule.value.data">
@@ -73,7 +93,7 @@
 				<td>{{value}}</td>
 				<td>
 					<span ng-if=proxyRuleDeleting[name].pending>(deleting..)</span>
-					<span ng-if=proxyRuleDeleting[name].rejected>(delete failed)</span>
+					<span ng-if=proxyRuleDeleting[name].rejected error-link=proxyRuleDeleting[name]>(delete failed)</span>
 					<button ng-if=!proxyRuleDeleting[name].pending ng-click=deleteProxyRule(name);>❌</button>
 				</td>
 			</tr>
@@ -82,7 +102,7 @@
 	<section ng-if=$app>
 		<h4>apps</h4>
 		<div ng-if=$app.pending>loading..</div>
-		<div ng-if=$app.rejected>error</div>
+		<div ng-if=$app.rejected error-link=$app>error</div>
 		<div ng-if="$app.value.status>0&&!($app.value.data|notEmpty)">(no apps)</div>
 		<table ng-if=$app.resolved&&($app.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $app.value.data">
@@ -93,13 +113,13 @@
 				<td>
 					{{value.running?"running":"not running"}}
 					<span ng-if=value.stopping.pending>(stopping..)</span>
-					<span ng-if=value.stopping.rejected>(stop failed)</span>
+					<span ng-if=value.stopping.rejected error-link=value.stopping>(stop failed)</span>
 					<span ng-if=value.starting.pending>(starting..)</span>
 					<span ng-if=value.starting.rejected>(start failed)</span>
 					<button ng-if=value.running&&!value.stopping.pending ng-click=stop(name);>⏹</button>
 					<button ng-if=!value.running&&!value.starting.pending ng-click=start(name);>⏵</button>
 					<span ng-if=value.deleting.pending>(deleting..)</span>
-					<span ng-if=value.deleting.rejected>(delete failed)</span>
+					<span ng-if=value.deleting.rejected error-link=value.deleting>(delete failed)</span>
 					<button ng-if=!value.deleting.pending ng-click=deleteApp(name);>❌</button>
 				</td>
 			</tr>
