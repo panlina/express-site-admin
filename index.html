@@ -12,6 +12,7 @@
 				$scope.connect = () => {
 					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`);
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`);
+					$scope.$module = $http.get(`${$scope.endpoint}/module/`);
 				};
 				$scope.proxyRuleDeleting = {};
 				$scope.deleteProxyRule = name => {
@@ -39,6 +40,13 @@
 					app.stopping = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/stop`);
 					app.stopping.then(response => {
 						app.running = false;
+					});
+				};
+				$scope.deleteModule = name => {
+					var module = $scope.$module.value.data[name];
+					module.deleting = $http.delete(`${$scope.endpoint}/module/${encodeURIComponent(name)}`);
+					module.deleting.then(response => {
+						delete $scope.$module.value.data[name];
 					});
 				};
 			})
@@ -121,6 +129,23 @@
 					<span ng-if=value.deleting.pending>(deleting..)</span>
 					<span ng-if=value.deleting.rejected error-link=value.deleting>(delete failed)</span>
 					<button ng-if=!value.deleting.pending ng-click=deleteApp(name);>❌</button>
+				</td>
+			</tr>
+		</table>
+	</section>
+	<section ng-if=$module>
+		<h4>modules</h4>
+		<div ng-if=$module.pending>loading..</div>
+		<div ng-if=$module.rejected error-link=$module>error</div>
+		<div ng-if="$module.value.status>0&&!($module.value.data|notEmpty)">(no modules)</div>
+		<table ng-if=$module.resolved&&($module.value.data|notEmpty)>
+			<tr ng-repeat="(name,value) in $module.value.data">
+				<td>{{name}}</td>
+				<td>{{value.source}}</td>
+				<td>
+					<span ng-if=value.deleting.pending>(deleting..)</span>
+					<span ng-if=value.deleting.rejected error-link=value.deleting>(delete failed)</span>
+					<button ng-if=!value.deleting.pending ng-click=deleteModule(name);>❌</button>
 				</td>
 			</tr>
 		</table>
