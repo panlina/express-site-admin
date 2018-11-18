@@ -20,6 +20,23 @@
 						delete $scope.$proxyRule.value.data[name];
 					});
 				};
+				$scope.newProxyRule = { name: '', value: '' };
+				$scope.proxyRuleAdding;
+				$scope.addProxyRule = () => {
+					var { name, value } = $scope.newProxyRule;
+					if (name in $scope.$proxyRule.value.data) {
+						alert("The proxy rule already exists.");
+						return;
+					}
+					$scope.proxyRuleAdding = $http.put(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value));
+					$scope.proxyRuleAdding.then(response => {
+						$scope.$proxyRule.value.data[name] = value;
+						with ($scope.newProxyRule) { name = ''; value = ''; }
+						setTimeout(() => {
+							document.getElementById('add-proxy-rule').elements[0].focus();
+						}, 0);
+					});
+				};
 				$scope.deleteApp = name => {
 					var app = $scope.$app.value.data[name];
 					app.deleting = $http.delete(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`);
@@ -84,6 +101,9 @@
 			text-decoration: underline;
 			cursor: pointer;
 		}
+		td > input {
+			width: 100%;
+		}
 	</style>
 </head>
 
@@ -104,7 +124,17 @@
 					<button ng-if=!proxyRuleDeleting[name].pending ng-click=deleteProxyRule(name);>❌</button>
 				</td>
 			</tr>
+			<tr>
+				<td><input type=text form=add-proxy-rule ng-disabled=proxyRuleAdding.pending ng-model=newProxyRule.name></td>
+				<td><input type=text form=add-proxy-rule ng-disabled=proxyRuleAdding.pending ng-model=newProxyRule.value></td>
+				<td>
+					<span ng-if=proxyRuleAdding.pending>(adding..)</span>
+					<span ng-if=proxyRuleAdding.rejected error-link=proxyRuleAdding>(add failed)</span>
+					<button form=add-proxy-rule ng-if=!proxyRuleAdding.pending>➕</button>
+				</td>
+			</tr>
 		</table>
+		<form id=add-proxy-rule ng-submit=addProxyRule();></form>
 	</section>
 	<section ng-if=$app>
 		<h4>apps</h4>
