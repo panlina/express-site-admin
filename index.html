@@ -8,7 +8,6 @@
 	<script>
 		angular.module('.', [])
 			.controller('.', function ($scope, $http) {
-				$scope.endpoint = "http://localhost:9001";
 				$scope.connect = () => {
 					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`);
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`);
