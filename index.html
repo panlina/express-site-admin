@@ -44,6 +44,35 @@
 						delete $scope.$app.value.data[name];
 					});
 				};
+				$scope.newApp = { name: '', value: {} };
+				$scope.appAdding;
+				$scope.addApp = () => {
+					if ($scope.newAppTypeNgModelController.$invalid) {
+						alert("type is not valid.");
+						return;
+					}
+					else if ($scope.newAppModuleNgModelController.$invalid) {
+						alert("module is not valid.");
+						return;
+					}
+					else if ($scope.newAppArgumentsNgModelController.$invalid) {
+						alert("arguments is not valid.");
+						return;
+					}
+					var { name, value } = $scope.newApp;
+					if (name in $scope.$app.value.data) {
+						alert("The app already exists.");
+						return;
+					}
+					$scope.appAdding = $http.put(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`, value);
+					$scope.appAdding.then(response => {
+						$scope.$app.value.data[name] = value;
+						with ($scope.newApp) { name = ''; value = {}; }
+						setTimeout(() => {
+							document.getElementById('add-app').elements[0].focus();
+						}, 0);
+					});
+				};
 				$scope.start = name => {
 					var app = $scope.$app.value.data[name];
 					app.starting = $http.post(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}/start`);
@@ -95,6 +124,8 @@
 				}
 			}))
 	</script>
+	<script src="ngModelJson.js"></script>
+	<script src="ngModelControllerRef.js"></script>
 	<style>
 		[error-link] {
 			color: red;
@@ -160,7 +191,24 @@
 					<button ng-if=!value.deleting.pending ng-click=deleteApp(name);>❌</button>
 				</td>
 			</tr>
+			<tr>
+				<td><input type=text form=add-app ng-disabled=appAdding.pending ng-model=newApp.name></td>
+				<td>
+					<select name=type form=add-app required ng-disabled=appAdding.pending ng-model=newApp.value.type ng-model-controller-ref=$parent.$parent.newAppTypeNgModelController>
+						<option>middleware</option>
+						<option>standalone</option>
+					</select>
+				</td>
+				<td><input type=text name=module form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.module ng-model-controller-ref=$parent.$parent.newAppModuleNgModelController></td>
+				<td><input type=text name=arguments form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.arguments ng-model-json ng-model-controller-ref=$parent.$parent.newAppArgumentsNgModelController></td>
+				<td>
+					<span ng-if=appAdding.pending>(adding..)</span>
+					<span ng-if=appAdding.rejected error-link=appAdding>(add failed)</span>
+					<button form=add-app ng-if=!appAdding.pending>➕</button>
+				</td>
+			</tr>
 		</table>
+		<form id=add-app ng-submit=addApp();></form>
 	</section>
 	<section ng-if=$module>
 		<h4>modules</h4>
