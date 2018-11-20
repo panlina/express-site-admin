@@ -87,6 +87,21 @@
 						app.running = false;
 					});
 				};
+				$scope.newModule = { value: {} };
+				$scope.moduleAdding;
+				$scope.addModule = () => {
+					var { value } = $scope.newModule;
+					$scope.moduleAdding = $http.post(`${$scope.endpoint}/module/`, value);
+					$scope.moduleAdding.then(response => {
+						var location = response.headers('Location');
+						var name = location.substr(location.indexOf('/', 1) + 1);
+						$scope.$module.value.data[name] = value;
+						with ($scope.newModule) { value = {}; }
+						setTimeout(() => {
+							document.getElementById('add-module').elements[0].focus();
+						}, 0);
+					});
+				};
 				$scope.deleteModule = name => {
 					var module = $scope.$module.value.data[name];
 					module.deleting = $http.delete(`${$scope.endpoint}/module/${encodeURIComponent(name)}`);
@@ -225,7 +240,17 @@
 					<button ng-if=!value.deleting.pending ng-click=deleteModule(name);>❌</button>
 				</td>
 			</tr>
+			<tr>
+				<td></td>
+				<td><input type=text form=add-module ng-disabled=moduleAdding.pending ng-model=newModule.value.source></td>
+				<td>
+					<span ng-if=moduleAdding.pending>(adding..)</span>
+					<span ng-if=moduleAdding.rejected error-link=moduleAdding>(add failed)</span>
+					<button form=add-module ng-if=!moduleAdding.pending>➕</button>
+				</td>
+			</tr>
 		</table>
+		<form id=add-module ng-submit=addModule();></form>
 	</section>
 </body>
 
