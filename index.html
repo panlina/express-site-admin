@@ -198,7 +198,7 @@
 					<span ng-if=value.stopping.pending>(stopping..)</span>
 					<span ng-if=value.stopping.rejected error-link=value.stopping>(stop failed)</span>
 					<span ng-if=value.starting.pending>(starting..)</span>
-					<span ng-if=value.starting.rejected>(start failed)</span>
+					<span ng-if=value.starting.rejected error-link=value.starting>(start failed)</span>
 					<button ng-if=value.running&&!value.stopping.pending ng-click=stop(name);>⏹</button>
 					<button ng-if=!value.running&&!value.starting.pending ng-click=start(name);>⏵</button>
 					<span ng-if=value.deleting.pending>(deleting..)</span>
