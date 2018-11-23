@@ -159,7 +159,7 @@
 		<h4>proxy rules</h4>
 		<div ng-if=$proxyRule.pending>loading..</div>
 		<div ng-if=$proxyRule.rejected error-link=$proxyRule>error</div>
-		<div ng-if="$proxyRule.value.status>0&&!($proxyRule.value.data|notEmpty)">(no proxy rules)</div>
+		<div ng-if=$proxyRule.resolved&&!($proxyRule.value.data|notEmpty)>(no proxy rules)</div>
 		<table ng-if=$proxyRule.resolved&&($proxyRule.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $proxyRule.value.data">
 				<td>{{name||"(default)"}}</td>
@@ -186,7 +186,7 @@
 		<h4>apps</h4>
 		<div ng-if=$app.pending>loading..</div>
 		<div ng-if=$app.rejected error-link=$app>error</div>
-		<div ng-if="$app.value.status>0&&!($app.value.data|notEmpty)">(no apps)</div>
+		<div ng-if=$app.resolved&&!($app.value.data|notEmpty)>(no apps)</div>
 		<table ng-if=$app.resolved&&($app.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $app.value.data">
 				<td>{{name||"(default)"}}</td>
@@ -229,7 +229,7 @@
 		<h4>modules</h4>
 		<div ng-if=$module.pending>loading..</div>
 		<div ng-if=$module.rejected error-link=$module>error</div>
-		<div ng-if="$module.value.status>0&&!($module.value.data|notEmpty)">(no modules)</div>
+		<div ng-if=$module.resolved&&!($module.value.data|notEmpty)>(no modules)</div>
 		<table ng-if=$module.resolved&&($module.value.data|notEmpty)>
 			<tr ng-repeat="(name,value) in $module.value.data">
 				<td>{{name}}</td>
