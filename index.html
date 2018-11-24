@@ -187,12 +187,13 @@
 		<div ng-if=$app.pending>loading..</div>
 		<div ng-if=$app.rejected error-link=$app>error</div>
 		<table ng-if=$app.resolved>
-			<tr ng-if=!($app.value.data|notEmpty)><td colspan=5>(no apps)</td></tr>
+			<tr ng-if=!($app.value.data|notEmpty)><td colspan=6>(no apps)</td></tr>
 			<tr ng-repeat="(name,value) in $app.value.data">
 				<td>{{name||"(default)"}}</td>
 				<td>{{value.type}}</td>
 				<td>{{value.module}}</td>
 				<td>{{value.arguments}}</td>
+				<td>{{value.port}}</td>
 				<td>
 					{{value.running?"running":"not running"}}
 					<span ng-if=value.stopping.pending>(stopping..)</span>
@@ -216,6 +217,7 @@
 				</td>
 				<td><input type=text name=module form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.module ng-model-controller-ref=$parent.$parent.newAppModuleNgModelController></td>
 				<td><input type=text name=arguments form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.arguments ng-model-json ng-model-controller-ref=$parent.$parent.newAppArgumentsNgModelController></td>
+				<td><input type=number min=0 max=65535 form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.port></td>
 				<td>
 					<span ng-if=appAdding.pending>(adding..)</span>
 					<span ng-if=appAdding.rejected error-link=appAdding>(add failed)</span>
