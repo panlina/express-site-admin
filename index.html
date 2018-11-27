@@ -12,6 +12,17 @@
 					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`);
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`);
 					$scope.$module = $http.get(`${$scope.endpoint}/module/`);
+					$scope.eventSource && $scope.eventSource.close();
+					$scope.eventSource = new EventSource(`${$scope.endpoint}/event/`);
+					$scope.eventSource.addEventListener('stop', e => {
+						var [source, data] = e.data.split('\n');
+						data = JSON.parse(data);
+						var [, type, name] = source.split('/');
+						if (type == 'app') {
+							$scope.$app.value.data[name].running = false;
+							$scope.$apply();
+						}
+					});
 				};
 				$scope.proxyRuleDeleting = {};
 				$scope.deleteProxyRule = name => {
