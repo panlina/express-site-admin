@@ -31,6 +31,24 @@
 						delete $scope.$proxyRule.value.data[name];
 					});
 				};
+				$scope.updatedProxyRule = {};
+				$scope.proxyRuleUpdating = {};
+				$scope.proxyRuleEditing = {};
+				$scope.proxyRuleEditing = new Proxy($scope.proxyRuleEditing, {
+					set: (target, property, value) => {
+						target[property] = value;
+						if (value)
+							$scope.updatedProxyRule[property] = $scope.$proxyRule.value.data[property];
+					}
+				});
+				$scope.updateProxyRule = name => {
+					var value = $scope.updatedProxyRule[name];
+					$scope.proxyRuleUpdating[name] = $http.put(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value));
+					$scope.proxyRuleUpdating[name].then(response => {
+						$scope.$proxyRule.value.data[name] = value;
+						$scope.proxyRuleEditing[name] = false;
+					});
+				};
 				$scope.newProxyRule = { name: '', value: '' };
 				$scope.proxyRuleAdding;
 				$scope.addProxyRule = () => {
@@ -174,12 +192,19 @@
 			<tr ng-if=!($proxyRule.value.data|notEmpty)><td colspan=3>(no proxy rules)</td></tr>
 			<tr ng-repeat="(name,value) in $proxyRule.value.data">
 				<td>{{name||"(default)"}}</td>
-				<td>{{value}}</td>
+				<td ng-if=!proxyRuleEditing[name]>{{value}}</td>
+				<td ng-if=proxyRuleEditing[name]><input type=text form=update-proxy-rule-{{name}} ng-disabled=proxyRuleUpdating[name].pending ng-model=updatedProxyRule[name]></td>
 				<td>
 					<span ng-if=proxyRuleDeleting[name].pending>(deleting..)</span>
 					<span ng-if=proxyRuleDeleting[name].rejected error-link=proxyRuleDeleting[name]>(delete failed)</span>
-					<button ng-if=!proxyRuleDeleting[name].pending ng-click=deleteProxyRule(name);>❌</button>
+					<button ng-if=!proxyRuleDeleting[name].pending ng-hide=proxyRuleEditing[name] ng-click=deleteProxyRule(name);>❌</button>
+					<span ng-if=proxyRuleUpdating[name].pending>(updating..)</span>
+					<span ng-if=proxyRuleUpdating[name].rejected error-link=proxyRuleUpdating[name]>(update failed)</span>
+					<button ng-if=!proxyRuleEditing[name] ng-hide=proxyRuleDeleting[name].pending ng-click=proxyRuleEditing[name]=true;>🖉</button>
+					<button ng-if=proxyRuleEditing[name] ng-hide=proxyRuleUpdating[name].pending ng-click=proxyRuleEditing[name]=false;>cancel</button>
+					<button form=update-proxy-rule-{{name}} ng-if=proxyRuleEditing[name] ng-hide=proxyRuleUpdating[name].pending>submit</button>
 				</td>
+				<form id=update-proxy-rule-{{name}} ng-submit=updateProxyRule(name);></form>
 			</tr>
 			<tr>
 				<td><input type=text form=add-proxy-rule ng-disabled=proxyRuleAdding.pending ng-model=newProxyRule.name></td>
