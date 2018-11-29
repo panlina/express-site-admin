@@ -73,6 +73,38 @@
 						delete $scope.$app.value.data[name];
 					});
 				};
+				$scope.updatedApp = {};
+				$scope.appEditing = {};
+				$scope.appEditing = new Proxy($scope.appEditing, {
+					set: (target, property, value) => {
+						target[property] = value;
+						if (value) {
+							$scope.updatedApp[property] = Object.assign({}, $scope.$app.value.data[property]);
+							delete $scope.updatedApp[property].running;
+						}
+					}
+				});
+				$scope.updateApp = name => {
+					if ($scope.updatedAppTypeNgModelController.$invalid) {
+						alert("type is not valid.");
+						return;
+					}
+					else if ($scope.updatedAppModuleNgModelController.$invalid) {
+						alert("module is not valid.");
+						return;
+					}
+					else if ($scope.updatedAppArgumentsNgModelController.$invalid) {
+						alert("arguments is not valid.");
+						return;
+					}
+					var app = $scope.$app.value.data[name];
+					var value = $scope.updatedApp[name];
+					app.updating = $http.put(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`, value);
+					app.updating.then(response => {
+						$scope.$app.value.data[name] = value;
+						$scope.appEditing[name] = false;
+					});
+				};
 				$scope.newApp = { name: '', value: {} };
 				$scope.appAdding;
 				$scope.addApp = () => {
@@ -226,10 +258,19 @@
 			<tr ng-if=!($app.value.data|notEmpty)><td colspan=6>(no apps)</td></tr>
 			<tr ng-repeat="(name,value) in $app.value.data">
 				<td>{{name||"(default)"}}</td>
-				<td>{{value.type}}</td>
-				<td>{{value.module}}</td>
-				<td>{{value.arguments}}</td>
-				<td>{{value.port}}</td>
+				<td ng-if=!appEditing[name]>{{value.type}}</td>
+				<td ng-if=appEditing[name]>
+					<select name=type form=update-app-{{name}} required ng-disabled=value.updating.pending ng-model=updatedApp[name].type ng-model-controller-ref=$parent.$parent.$parent.$parent.updatedAppTypeNgModelController>
+						<option>middleware</option>
+						<option>standalone</option>
+					</select>
+				</td>
+				<td ng-if=!appEditing[name]>{{value.module}}</td>
+				<td ng-if=appEditing[name]><input type=text name=module form=update-app-{{name}} ng-disabled=value.updating.pending ng-model=updatedApp[name].module ng-model-controller-ref=$parent.$parent.$parent.$parent.updatedAppModuleNgModelController></td>
+				<td ng-if=!appEditing[name]>{{value.arguments}}</td>
+				<td ng-if=appEditing[name]><input type=text name=arguments form=update-app-{{name}} ng-disabled=value.updating.pending ng-model=updatedApp[name].arguments ng-model-json ng-model-controller-ref=$parent.$parent.$parent.$parent.updatedAppArgumentsNgModelController></td>
+				<td ng-if=!appEditing[name]>{{value.port}}</td>
+				<td ng-if=appEditing[name]><input type=number min=0 max=65535 form=update-app-{{name}} ng-disabled=value.updating.pending ng-model=updatedApp[name].port></td>
 				<td>
 					{{value.running?"running":"not running"}}
 					<span ng-if=value.stopping.pending>(stopping..)</span>
@@ -241,7 +282,13 @@
 					<span ng-if=value.deleting.pending>(deleting..)</span>
 					<span ng-if=value.deleting.rejected error-link=value.deleting>(delete failed)</span>
 					<button ng-if=!value.deleting.pending ng-click=deleteApp(name);>❌</button>
+					<span ng-if=value.updating.pending>(updating..)</span>
+					<span ng-if=value.updating.rejected error-link=value.updating>(update failed)</span>
+					<button ng-if=!appEditing[name] ng-hide=value.deleting.pending ng-click=appEditing[name]=true;>🖉</button>
+					<button ng-if=appEditing[name] ng-hide=value.updating.pending ng-click=appEditing[name]=false;>cancel</button>
+					<button form=update-app-{{name}} ng-if=appEditing[name] ng-hide=value.updating.pending>submit</button>
 				</td>
+				<form id=update-app-{{name}} ng-submit=updateApp(name);></form>
 			</tr>
 			<tr>
 				<td><input type=text form=add-app ng-disabled=appAdding.pending ng-model=newApp.name></td>
