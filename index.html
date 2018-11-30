@@ -12,6 +12,34 @@
 					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`);
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`);
 					$scope.$module = $http.get(`${$scope.endpoint}/module/`);
+					$scope.proxyRuleDeleting = {};
+					$scope.updatedProxyRule = {};
+					$scope.proxyRuleUpdating = {};
+					$scope.proxyRuleEditing = {};
+					$scope.proxyRuleEditing = new Proxy($scope.proxyRuleEditing, {
+						set: (target, property, value) => {
+							target[property] = value;
+							if (value)
+								$scope.updatedProxyRule[property] = $scope.$proxyRule.value.data[property];
+						}
+					});
+					$scope.newProxyRule = { name: '', value: '' };
+					delete $scope.proxyRuleAdding;
+					$scope.updatedApp = {};
+					$scope.appEditing = {};
+					$scope.appEditing = new Proxy($scope.appEditing, {
+						set: (target, property, value) => {
+							target[property] = value;
+							if (value) {
+								$scope.updatedApp[property] = Object.assign({}, $scope.$app.value.data[property]);
+								delete $scope.updatedApp[property].running;
+							}
+						}
+					});
+					$scope.newApp = { name: '', value: {} };
+					delete $scope.appAdding;
+					$scope.newModule = { value: {} };
+					delete $scope.moduleAdding;
 					$scope.eventSource && $scope.eventSource.close();
 					$scope.eventSource = new EventSource(`${$scope.endpoint}/event/`);
 					$scope.eventSource.addEventListener('stop', e => {
@@ -24,23 +52,16 @@
 						}
 					});
 				};
-				$scope.proxyRuleDeleting = {};
+				$scope.proxyRuleDeleting;
 				$scope.deleteProxyRule = name => {
 					$scope.proxyRuleDeleting[name] = $http.delete(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`);
 					$scope.proxyRuleDeleting[name].then(response => {
 						delete $scope.$proxyRule.value.data[name];
 					});
 				};
-				$scope.updatedProxyRule = {};
-				$scope.proxyRuleUpdating = {};
-				$scope.proxyRuleEditing = {};
-				$scope.proxyRuleEditing = new Proxy($scope.proxyRuleEditing, {
-					set: (target, property, value) => {
-						target[property] = value;
-						if (value)
-							$scope.updatedProxyRule[property] = $scope.$proxyRule.value.data[property];
-					}
-				});
+				$scope.updatedProxyRule;
+				$scope.proxyRuleUpdating;
+				$scope.proxyRuleEditing;
 				$scope.updateProxyRule = name => {
 					var value = $scope.updatedProxyRule[name];
 					$scope.proxyRuleUpdating[name] = $http.put(`${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value));
@@ -49,7 +70,7 @@
 						$scope.proxyRuleEditing[name] = false;
 					});
 				};
-				$scope.newProxyRule = { name: '', value: '' };
+				$scope.newProxyRule;
 				$scope.proxyRuleAdding;
 				$scope.addProxyRule = () => {
 					var { name, value } = $scope.newProxyRule;
@@ -73,17 +94,8 @@
 						delete $scope.$app.value.data[name];
 					});
 				};
-				$scope.updatedApp = {};
-				$scope.appEditing = {};
-				$scope.appEditing = new Proxy($scope.appEditing, {
-					set: (target, property, value) => {
-						target[property] = value;
-						if (value) {
-							$scope.updatedApp[property] = Object.assign({}, $scope.$app.value.data[property]);
-							delete $scope.updatedApp[property].running;
-						}
-					}
-				});
+				$scope.updatedApp;
+				$scope.appEditing;
 				$scope.updateApp = name => {
 					if ($scope.updatedAppTypeNgModelController.$invalid) {
 						alert("type is not valid.");
@@ -105,7 +117,7 @@
 						$scope.appEditing[name] = false;
 					});
 				};
-				$scope.newApp = { name: '', value: {} };
+				$scope.newApp;
 				$scope.appAdding;
 				$scope.addApp = () => {
 					if ($scope.newAppTypeNgModelController.$invalid) {
@@ -148,7 +160,7 @@
 						app.running = false;
 					});
 				};
-				$scope.newModule = { value: {} };
+				$scope.newModule;
 				$scope.moduleAdding;
 				$scope.addModule = () => {
 					var { value } = $scope.newModule;
