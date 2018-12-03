@@ -23,6 +23,16 @@
 								$scope.updatedProxyRule[property] = $scope.$proxyRule.value.data[property];
 						}
 					});
+					$scope.updatedProxyRuleName = {};
+					$scope.proxyRuleRenaming = {};
+					$scope.proxyRuleNameEditing = {};
+					$scope.proxyRuleNameEditing = new Proxy($scope.proxyRuleNameEditing, {
+						set: (target, property, value) => {
+							target[property] = value;
+							if (value)
+								$scope.updatedProxyRuleName[property] = property;
+						}
+					});
 					$scope.newProxyRule = { name: '', value: '' };
 					delete $scope.proxyRuleAdding;
 					$scope.updatedApp = {};
@@ -68,6 +78,44 @@
 					$scope.proxyRuleUpdating[name].then(response => {
 						$scope.$proxyRule.value.data[name] = value;
 						$scope.proxyRuleEditing[name] = false;
+					});
+				};
+				$scope.updatedProxyRuleName;
+				$scope.proxyRuleRenaming;
+				$scope.proxyRuleNameEditing;
+				$scope.renameProxyRule = name => {
+					var newName = $scope.updatedProxyRuleName[name];
+					if (newName == name) {
+						delete $scope.proxyRuleNameEditing[name];
+						return;
+					}
+					if (newName in $scope.$proxyRule.value.data) {
+						alert("The proxy rule already exists.");
+						return;
+					}
+					$scope.proxyRuleRenaming[name] = $http({
+						method: 'MOVE',
+						url: `${$scope.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`,
+						headers: {
+							Destination: `/proxy-rule/${encodeURIComponent(newName || 'default')}`,
+							Overwrite: 'F'
+						}
+					});
+					$scope.proxyRuleRenaming[name].then(response => {
+						$scope.$proxyRule.value.data[newName] = $scope.$proxyRule.value.data[name];
+						delete $scope.$proxyRule.value.data[name];
+						delete $scope.proxyRuleNameEditing[name];
+						$scope.proxyRuleEditing[newName] = $scope.proxyRuleEditing[name];
+						delete $scope.proxyRuleEditing[name];
+						$scope.proxyRuleRenaming[newName] = $scope.proxyRuleRenaming[name];
+						delete $scope.proxyRuleRenaming[name];
+						$scope.proxyRuleUpdating[newName] = $scope.proxyRuleUpdating[name];
+						delete $scope.proxyRuleUpdating[name];
+						$scope.proxyRuleDeleting[newName] = $scope.proxyRuleDeleting[name];
+						delete $scope.proxyRuleDeleting[name];
+						$scope.updatedProxyRule[newName] = $scope.updatedProxyRule[name];
+						delete $scope.updatedProxyRule[name];
+						delete $scope.updatedProxyRuleName[name];
 					});
 				};
 				$scope.newProxyRule;
@@ -231,7 +279,8 @@
 		<table ng-if=$proxyRule.resolved>
 			<tr ng-if=!($proxyRule.value.data|notEmpty)><td colspan=3>(no proxy rules)</td></tr>
 			<tr ng-repeat="(name,value) in $proxyRule.value.data">
-				<td>{{name||"(default)"}}</td>
+				<td ng-if=!proxyRuleNameEditing[name]>{{name||"(default)"}}</td>
+				<td ng-if=proxyRuleNameEditing[name]><input type=text form=rename-proxy-rule-{{name}} ng-disabled=proxyRuleRenaming[name].pending ng-model=updatedProxyRuleName[name]></td>
 				<td ng-if=!proxyRuleEditing[name]>{{value}}</td>
 				<td ng-if=proxyRuleEditing[name]><input type=text form=update-proxy-rule-{{name}} ng-disabled=proxyRuleUpdating[name].pending ng-model=updatedProxyRule[name]></td>
 				<td>
@@ -243,8 +292,14 @@
 					<button ng-if=!proxyRuleEditing[name] ng-hide=proxyRuleDeleting[name].pending ng-click=proxyRuleEditing[name]=true;>🖉</button>
 					<button ng-if=proxyRuleEditing[name] ng-hide=proxyRuleUpdating[name].pending ng-click=proxyRuleEditing[name]=false;>cancel</button>
 					<button form=update-proxy-rule-{{name}} ng-if=proxyRuleEditing[name] ng-hide=proxyRuleUpdating[name].pending>submit</button>
+					<span ng-if=proxyRuleRenaming[name].pending>(renaming..)</span>
+					<span ng-if=proxyRuleRenaming[name].rejected error-link=proxyRuleRenaming[name]>(rename failed)</span>
+					<button ng-if=!proxyRuleNameEditing[name] ng-hide=proxyRuleDeleting[name].pending ng-click=proxyRuleNameEditing[name]=true;>rename</button>
+					<button ng-if=proxyRuleNameEditing[name] ng-hide=proxyRuleRenaming[name].pending ng-click=proxyRuleNameEditing[name]=false;>cancel</button>
+					<button form=rename-proxy-rule-{{name}} ng-if=proxyRuleNameEditing[name] ng-hide=proxyRuleRenaming[name].pending>submit</button>
 				</td>
 				<form id=update-proxy-rule-{{name}} ng-submit=updateProxyRule(name);></form>
+				<form id=rename-proxy-rule-{{name}} ng-submit=renameProxyRule(name);></form>
 			</tr>
 			<tr>
 				<td><input type=text form=add-proxy-rule ng-disabled=proxyRuleAdding.pending ng-model=newProxyRule.name></td>
