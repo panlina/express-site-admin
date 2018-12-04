@@ -46,6 +46,15 @@
 							}
 						}
 					});
+					$scope.updatedAppName = {};
+					$scope.appNameEditing = {};
+					$scope.appNameEditing = new Proxy($scope.appNameEditing, {
+						set: (target, property, value) => {
+							target[property] = value;
+							if (value)
+								$scope.updatedAppName[property] = property;
+						}
+					});
 					$scope.newApp = { name: '', value: {} };
 					delete $scope.appAdding;
 					$scope.newModule = { value: {} };
@@ -163,6 +172,38 @@
 					app.updating.then(response => {
 						$scope.$app.value.data[name] = value;
 						$scope.appEditing[name] = false;
+					});
+				};
+				$scope.updatedAppName;
+				$scope.appNameEditing;
+				$scope.renameApp = name => {
+					var newName = $scope.updatedAppName[name];
+					if (newName == name) {
+						delete $scope.appNameEditing[name];
+						return;
+					}
+					if (newName in $scope.$app.value.data) {
+						alert("The app already exists.");
+						return;
+					}
+					var app = $scope.$app.value.data[name];
+					app.renaming = $http({
+						method: 'MOVE',
+						url: `${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`,
+						headers: {
+							Destination: `/app/${encodeURIComponent(newName || 'default')}`,
+							Overwrite: 'F'
+						}
+					});
+					app.renaming.then(response => {
+						$scope.$app.value.data[newName] = $scope.$app.value.data[name];
+						delete $scope.$app.value.data[name];
+						delete $scope.appNameEditing[name];
+						$scope.appEditing[newName] = $scope.appEditing[name];
+						delete $scope.appEditing[name];
+						$scope.updatedApp[newName] = $scope.updatedApp[name];
+						delete $scope.updatedApp[name];
+						delete $scope.updatedAppName[name];
 					});
 				};
 				$scope.newApp;
@@ -320,7 +361,8 @@
 		<table ng-if=$app.resolved>
 			<tr ng-if=!($app.value.data|notEmpty)><td colspan=6>(no apps)</td></tr>
 			<tr ng-repeat="(name,value) in $app.value.data">
-				<td>{{name||"(default)"}}</td>
+				<td ng-if=!appNameEditing[name]>{{name||"(default)"}}</td>
+				<td ng-if=appNameEditing[name]><input type=text form=rename-app-{{name}} ng-disabled=value.renaming.pending ng-model=updatedAppName[name]></td>
 				<td ng-if=!appEditing[name]>{{value.type}}</td>
 				<td ng-if=appEditing[name]>
 					<select name=type form=update-app-{{name}} required ng-disabled=value.updating.pending ng-model=updatedApp[name].type ng-model-controller-ref=$parent.$parent.$parent.$parent.updatedAppTypeNgModelController>
@@ -350,8 +392,14 @@
 					<button ng-if=!appEditing[name] ng-hide=value.deleting.pending ng-click=appEditing[name]=true;>🖉</button>
 					<button ng-if=appEditing[name] ng-hide=value.updating.pending ng-click=appEditing[name]=false;>cancel</button>
 					<button form=update-app-{{name}} ng-if=appEditing[name] ng-hide=value.updating.pending>submit</button>
+					<span ng-if=value.renaming.pending>(renaming..)</span>
+					<span ng-if=value.renaming.rejected error-link=value.renaming>(rename failed)</span>
+					<button ng-if=!appNameEditing[name] ng-hide=value.deleting.pending ng-click=appNameEditing[name]=true;>rename</button>
+					<button ng-if=appNameEditing[name] ng-hide=value.renaming.pending ng-click=appNameEditing[name]=false;>cancel</button>
+					<button form=rename-app-{{name}} ng-if=appNameEditing[name] ng-hide=value.renaming.pending>submit</button>
 				</td>
 				<form id=update-app-{{name}} ng-submit=updateApp(name);></form>
+				<form id=rename-app-{{name}} ng-submit=renameApp(name);></form>
 			</tr>
 			<tr>
 				<td><input type=text form=add-app ng-disabled=appAdding.pending ng-model=newApp.name></td>
