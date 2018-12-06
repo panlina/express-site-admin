@@ -10,6 +10,7 @@
 			.controller('.', function ($scope, $http) {
 				$scope.connect = () => {
 					$scope.$proxyRule = $http.get(`${$scope.endpoint}/proxy-rule/`);
+					$scope.$vhost = $http.get(`${$scope.endpoint}/vhost/`);
 					$scope.$app = $http.get(`${$scope.endpoint}/app/`);
 					$scope.$module = $http.get(`${$scope.endpoint}/module/`);
 					$scope.proxyRuleDeleting = {};
@@ -35,6 +36,29 @@
 					});
 					$scope.newProxyRule = { name: '', value: '' };
 					delete $scope.proxyRuleAdding;
+					$scope.vhostDeleting = {};
+					$scope.updatedVHost = {};
+					$scope.vhostUpdating = {};
+					$scope.vhostEditing = {};
+					$scope.vhostEditing = new Proxy($scope.vhostEditing, {
+						set: (target, property, value) => {
+							target[property] = value;
+							if (value)
+								$scope.updatedVHost[property] = $scope.$vhost.value.data[property];
+						}
+					});
+					$scope.updatedVHostName = {};
+					$scope.vhostRenaming = {};
+					$scope.vhostNameEditing = {};
+					$scope.vhostNameEditing = new Proxy($scope.vhostNameEditing, {
+						set: (target, property, value) => {
+							target[property] = value;
+							if (value)
+								$scope.updatedVHostName[property] = property;
+						}
+					});
+					$scope.newVHost = { name: '', value: '' };
+					delete $scope.vhostAdding;
 					$scope.updatedApp = {};
 					$scope.appEditing = {};
 					$scope.appEditing = new Proxy($scope.appEditing, {
@@ -141,6 +165,79 @@
 						with ($scope.newProxyRule) { name = ''; value = ''; }
 						setTimeout(() => {
 							document.getElementById('add-proxy-rule').elements[0].focus();
+						}, 0);
+					});
+				};
+				$scope.vhostDeleting;
+				$scope.deleteVHost = name => {
+					$scope.vhostDeleting[name] = $http.delete(`${$scope.endpoint}/vhost/${encodeURIComponent(name || 'default')}`);
+					$scope.vhostDeleting[name].then(response => {
+						delete $scope.$vhost.value.data[name];
+					});
+				};
+				$scope.updatedVHost;
+				$scope.vhostUpdating;
+				$scope.vhostEditing;
+				$scope.updateVHost = name => {
+					var value = $scope.updatedVHost[name];
+					$scope.vhostUpdating[name] = $http.put(`${$scope.endpoint}/vhost/${encodeURIComponent(name || 'default')}`, JSON.stringify(value));
+					$scope.vhostUpdating[name].then(response => {
+						$scope.$vhost.value.data[name] = value;
+						$scope.vhostEditing[name] = false;
+					});
+				};
+				$scope.updatedVHostName;
+				$scope.vhostRenaming;
+				$scope.vhostNameEditing;
+				$scope.renameVHost = name => {
+					var newName = $scope.updatedVHostName[name];
+					if (newName == name) {
+						delete $scope.vhostNameEditing[name];
+						return;
+					}
+					if (newName in $scope.$vhost.value.data) {
+						alert("The proxy rule already exists.");
+						return;
+					}
+					$scope.vhostRenaming[name] = $http({
+						method: 'MOVE',
+						url: `${$scope.endpoint}/vhost/${encodeURIComponent(name || 'default')}`,
+						headers: {
+							Destination: `/vhost/${encodeURIComponent(newName || 'default')}`,
+							Overwrite: 'F'
+						}
+					});
+					$scope.vhostRenaming[name].then(response => {
+						$scope.$vhost.value.data[newName] = $scope.$vhost.value.data[name];
+						delete $scope.$vhost.value.data[name];
+						delete $scope.vhostNameEditing[name];
+						$scope.vhostEditing[newName] = $scope.vhostEditing[name];
+						delete $scope.vhostEditing[name];
+						$scope.vhostRenaming[newName] = $scope.vhostRenaming[name];
+						delete $scope.vhostRenaming[name];
+						$scope.vhostUpdating[newName] = $scope.vhostUpdating[name];
+						delete $scope.vhostUpdating[name];
+						$scope.vhostDeleting[newName] = $scope.vhostDeleting[name];
+						delete $scope.vhostDeleting[name];
+						$scope.updatedVHost[newName] = $scope.updatedVHost[name];
+						delete $scope.updatedVHost[name];
+						delete $scope.updatedVHostName[name];
+					});
+				};
+				$scope.newVHost;
+				$scope.vhostAdding;
+				$scope.addVHost = () => {
+					var { name, value } = $scope.newVHost;
+					if (name in $scope.$vhost.value.data) {
+						alert("The vhost already exists.");
+						return;
+					}
+					$scope.vhostAdding = $http.put(`${$scope.endpoint}/vhost/${encodeURIComponent(name || 'default')}`, JSON.stringify(value));
+					$scope.vhostAdding.then(response => {
+						$scope.$vhost.value.data[name] = value;
+						with ($scope.newVHost) { name = ''; value = ''; }
+						setTimeout(() => {
+							document.getElementById('add-vhost').elements[0].focus();
 						}, 0);
 					});
 				};
@@ -353,6 +450,47 @@
 			</tr>
 		</table>
 		<form id=add-proxy-rule ng-submit=addProxyRule();></form>
+	</section>
+	<section ng-if=$vhost>
+		<h4>vhost</h4>
+		<div ng-if=$vhost.pending>loading..</div>
+		<div ng-if=$vhost.rejected error-link=$vhost>error</div>
+		<table ng-if=$vhost.resolved>
+			<tr ng-if=!($vhost.value.data|notEmpty)><td colspan=3>(no vhosts)</td></tr>
+			<tr ng-repeat="(name,value) in $vhost.value.data">
+				<td ng-if=!vhostNameEditing[name]>{{name||"(default)"}}</td>
+				<td ng-if=vhostNameEditing[name]><input type=text form=rename-vhost-{{name}} ng-disabled=vhostRenaming[name].pending ng-model=updatedVHostName[name]></td>
+				<td ng-if=!vhostEditing[name]>{{value}}</td>
+				<td ng-if=vhostEditing[name]><input type=text form=update-vhost-{{name}} ng-disabled=vhostUpdating[name].pending ng-model=updatedVHost[name]></td>
+				<td>
+					<span ng-if=vhostDeleting[name].pending>(deleting..)</span>
+					<span ng-if=vhostDeleting[name].rejected error-link=vhostDeleting[name]>(delete failed)</span>
+					<button ng-if=!vhostDeleting[name].pending ng-hide=vhostEditing[name] ng-click=deleteVHost(name);>❌</button>
+					<span ng-if=vhostUpdating[name].pending>(updating..)</span>
+					<span ng-if=vhostUpdating[name].rejected error-link=vhostUpdating[name]>(update failed)</span>
+					<button ng-if=!vhostEditing[name] ng-hide=vhostDeleting[name].pending ng-click=vhostEditing[name]=true;>🖉</button>
+					<button ng-if=vhostEditing[name] ng-hide=vhostUpdating[name].pending ng-click=vhostEditing[name]=false;>cancel</button>
+					<button form=update-vhost-{{name}} ng-if=vhostEditing[name] ng-hide=vhostUpdating[name].pending>submit</button>
+					<span ng-if=vhostRenaming[name].pending>(renaming..)</span>
+					<span ng-if=vhostRenaming[name].rejected error-link=vhostRenaming[name]>(rename failed)</span>
+					<button ng-if=!vhostNameEditing[name] ng-hide=vhostDeleting[name].pending ng-click=vhostNameEditing[name]=true;>rename</button>
+					<button ng-if=vhostNameEditing[name] ng-hide=vhostRenaming[name].pending ng-click=vhostNameEditing[name]=false;>cancel</button>
+					<button form=rename-vhost-{{name}} ng-if=vhostNameEditing[name] ng-hide=vhostRenaming[name].pending>submit</button>
+				</td>
+				<form id=update-vhost-{{name}} ng-submit=updateVHost(name);></form>
+				<form id=rename-vhost-{{name}} ng-submit=renameVHost(name);></form>
+			</tr>
+			<tr>
+				<td><input type=text form=add-vhost ng-disabled=vhostAdding.pending ng-model=newVHost.name></td>
+				<td><input type=text form=add-vhost ng-disabled=vhostAdding.pending ng-model=newVHost.value></td>
+				<td>
+					<span ng-if=vhostAdding.pending>(adding..)</span>
+					<span ng-if=vhostAdding.rejected error-link=vhostAdding>(add failed)</span>
+					<button form=add-vhost ng-if=!vhostAdding.pending>➕</button>
+				</td>
+			</tr>
+		</table>
+		<form id=add-vhost ng-submit=addVHost();></form>
 	</section>
 	<section ng-if=$app>
 		<h4>apps</h4>
