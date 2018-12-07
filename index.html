@@ -263,6 +263,10 @@
 						alert("arguments is not valid.");
 						return;
 					}
+					else if ($scope.updatedAppMountNgModelController.$invalid) {
+						alert("mount is not valid.");
+						return;
+					}
 					var app = $scope.$app.value.data[name];
 					var value = $scope.updatedApp[name];
 					app.updating = $http.put(`${$scope.endpoint}/app/${encodeURIComponent(name || 'default')}`, value);
@@ -316,6 +320,10 @@
 					}
 					else if ($scope.newAppArgumentsNgModelController.$invalid) {
 						alert("arguments is not valid.");
+						return;
+					}
+					else if ($scope.newAppMountNgModelController.$invalid) {
+						alert("mount is not valid.");
 						return;
 					}
 					var { name, value } = $scope.newApp;
@@ -497,7 +505,7 @@
 		<div ng-if=$app.pending>loading..</div>
 		<div ng-if=$app.rejected error-link=$app>error</div>
 		<table ng-if=$app.resolved>
-			<tr ng-if=!($app.value.data|notEmpty)><td colspan=6>(no apps)</td></tr>
+			<tr ng-if=!($app.value.data|notEmpty)><td colspan=7>(no apps)</td></tr>
 			<tr ng-repeat="(name,value) in $app.value.data">
 				<td ng-if=!appNameEditing[name]>{{name||"(default)"}}</td>
 				<td ng-if=appNameEditing[name]><input type=text form=rename-app-{{name}} ng-disabled=value.renaming.pending ng-model=updatedAppName[name]></td>
@@ -514,6 +522,13 @@
 				<td ng-if=appEditing[name]><input type=text name=arguments form=update-app-{{name}} ng-disabled=value.updating.pending ng-model=updatedApp[name].arguments ng-model-json ng-model-controller-ref=$parent.$parent.$parent.$parent.updatedAppArgumentsNgModelController></td>
 				<td ng-if=!appEditing[name]>{{value.port}}</td>
 				<td ng-if=appEditing[name]><input type=number min=0 max=65535 form=update-app-{{name}} ng-disabled=value.updating.pending ng-model=updatedApp[name].port></td>
+				<td ng-if=!appEditing[name]>{{value.mount}}</td>
+				<td ng-if=appEditing[name]>
+					<select name=mount form=update-app-{{name}} required ng-disabled=value.updating.pending ng-model=updatedApp[name].mount ng-model-controller-ref=$parent.$parent.$parent.$parent.updatedAppMountNgModelController>
+						<option>domain</option>
+						<option>directory</option>
+					</select>
+				</td>
 				<td>
 					{{value.running?"running":"not running"}}
 					<span ng-if=value.stopping.pending>(stopping..)</span>
@@ -550,6 +565,12 @@
 				<td><input type=text name=module form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.module ng-model-controller-ref=$parent.$parent.newAppModuleNgModelController></td>
 				<td><input type=text name=arguments form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.arguments ng-model-json ng-model-controller-ref=$parent.$parent.newAppArgumentsNgModelController></td>
 				<td><input type=number min=0 max=65535 form=add-app ng-disabled=appAdding.pending ng-model=newApp.value.port></td>
+				<td>
+					<select name=mount form=add-app required ng-disabled=appAdding.pending ng-model=newApp.value.mount ng-model-controller-ref=$parent.$parent.newAppMountNgModelController>
+						<option>domain</option>
+						<option>directory</option>
+					</select>
+				</td>
 				<td>
 					<span ng-if=appAdding.pending>(adding..)</span>
 					<span ng-if=appAdding.rejected error-link=appAdding>(add failed)</span>
