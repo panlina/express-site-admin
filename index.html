@@ -84,7 +84,7 @@
 					$scope.newModule = { value: {} };
 					delete $scope.moduleAdding;
 					$scope.eventSource && $scope.eventSource.close();
-					$scope.eventSource = new EventSource(`${$scope.endpoint}/event/`);
+					$scope.eventSource = new EventSource(`${$scope.endpoint}/event/`, { withCredentials: true });
 					$scope.eventSource.addEventListener('stop', e => {
 						var [source, data] = e.data.split('\n');
 						data = JSON.parse(data);
