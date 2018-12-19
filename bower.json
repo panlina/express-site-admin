@@ -1,5 +1,6 @@
 {
   "name": "express-site-admin",
+  "description": "A web admin client for https://github.com/panlina/express-site.",
   "dependencies": {
     "angular": "*",
     "angular-q-state": "https://github.com/panlina/angular-q-state.git"
