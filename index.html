@@ -435,7 +435,7 @@
 					<button ng-if=!proxyRuleDeleting[name].pending ng-hide=proxyRuleEditing[name] ng-click=deleteProxyRule(name); title=delete>❌</button>
 					<span ng-if=proxyRuleUpdating[name].pending>(updating..)</span>
 					<span ng-if=proxyRuleUpdating[name].rejected error-link=proxyRuleUpdating[name]>(update failed)</span>
-					<button ng-if=!proxyRuleEditing[name] ng-hide=proxyRuleDeleting[name].pending ng-click=proxyRuleEditing[name]=true; title=edit>🖉</button>
+					<button ng-if=!proxyRuleEditing[name] ng-hide=proxyRuleDeleting[name].pending ng-click=proxyRuleEditing[name]=true; title=edit>🖊</button>
 					<button ng-if=proxyRuleEditing[name] ng-hide=proxyRuleUpdating[name].pending ng-click=proxyRuleEditing[name]=false;>cancel</button>
 					<button form=update-proxy-rule-{{name}} ng-if=proxyRuleEditing[name] ng-hide=proxyRuleUpdating[name].pending>submit</button>
 					<span ng-if=proxyRuleRenaming[name].pending>(renaming..)</span>
@@ -476,7 +476,7 @@
 					<button ng-if=!vhostDeleting[name].pending ng-hide=vhostEditing[name] ng-click=deleteVHost(name); title=delete>❌</button>
 					<span ng-if=vhostUpdating[name].pending>(updating..)</span>
 					<span ng-if=vhostUpdating[name].rejected error-link=vhostUpdating[name]>(update failed)</span>
-					<button ng-if=!vhostEditing[name] ng-hide=vhostDeleting[name].pending ng-click=vhostEditing[name]=true; title=edit>🖉</button>
+					<button ng-if=!vhostEditing[name] ng-hide=vhostDeleting[name].pending ng-click=vhostEditing[name]=true; title=edit>🖊</button>
 					<button ng-if=vhostEditing[name] ng-hide=vhostUpdating[name].pending ng-click=vhostEditing[name]=false;>cancel</button>
 					<button form=update-vhost-{{name}} ng-if=vhostEditing[name] ng-hide=vhostUpdating[name].pending>submit</button>
 					<span ng-if=vhostRenaming[name].pending>(renaming..)</span>
@@ -536,13 +536,13 @@
 					<span ng-if=value.starting.pending>(starting..)</span>
 					<span ng-if=value.starting.rejected error-link=value.starting>(start failed)</span>
 					<button ng-if=value.running&&!value.stopping.pending ng-click=stop(name); title=stop>⏹</button>
-					<button ng-if=!value.running&&!value.starting.pending ng-click=start(name); title=start>⏵</button>
+					<button ng-if=!value.running&&!value.starting.pending ng-click=start(name); title=start>▶️</button>
 					<span ng-if=value.deleting.pending>(deleting..)</span>
 					<span ng-if=value.deleting.rejected error-link=value.deleting>(delete failed)</span>
 					<button ng-if=!value.deleting.pending ng-click=deleteApp(name); title=delete>❌</button>
 					<span ng-if=value.updating.pending>(updating..)</span>
 					<span ng-if=value.updating.rejected error-link=value.updating>(update failed)</span>
-					<button ng-if=!appEditing[name] ng-hide=value.deleting.pending ng-click=appEditing[name]=true; title=edit>🖉</button>
+					<button ng-if=!appEditing[name] ng-hide=value.deleting.pending ng-click=appEditing[name]=true; title=edit>🖊</button>
 					<button ng-if=appEditing[name] ng-hide=value.updating.pending ng-click=appEditing[name]=false;>cancel</button>
 					<button form=update-app-{{name}} ng-if=appEditing[name] ng-hide=value.updating.pending>submit</button>
 					<span ng-if=value.renaming.pending>(renaming..)</span>
