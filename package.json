@@ -1,0 +1,16 @@
+{
+  "name": "express-site-admin",
+  "version": "0.0.0",
+  "description": "A web admin client for https://github.com/panlina/express-site.",
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  },
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "license": "ISC"
+}
