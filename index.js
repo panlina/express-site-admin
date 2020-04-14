@@ -20,6 +20,9 @@ class Index extends React.Component {
 		axios.get(`${this.state.endpoint}/proxy-rule`).then(response => {
 			this.setState({ proxyRule: response.data });
 			this.setState({ proxyRuleLoading: false });
+		}, error => {
+			this.setState({ proxyRule: error });
+			this.setState({ proxyRuleLoading: false });
 		});
 	}
 	render() {
@@ -33,15 +36,17 @@ class Index extends React.Component {
 				<h4>proxy rules</h4>
 				<p>{proxyRuleLoading && "loading..."}</p>
 				{proxyRule && (
-					Object.entries(proxyRule).length ?
-						<table>{
-							Object.entries(proxyRule)
-								.map(([name, value]) => <tr key={name}>
-									<td>{name}</td>
-									<td>{value}</td>
-								</tr>)
-						}</table> :
-						"(no proxy rules)"
+					proxyRule instanceof Error ?
+						`error: ${proxyRule.response && proxyRule.response.data || proxyRule.message}` :
+						Object.entries(proxyRule).length ?
+							<table>{
+								Object.entries(proxyRule)
+									.map(([name, value]) => <tr key={name}>
+										<td>{name}</td>
+										<td>{value}</td>
+									</tr>)
+							}</table> :
+							"(no proxy rules)"
 				)}
 			</section>
 		</>;
