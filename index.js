@@ -18,30 +18,32 @@ class Index extends React.Component {
 			proxyRuleAdded: undefined
 		};
 	}
-	connect() {
-		this.setState({ proxyRuleLoading: true });
-		axios.get(`${this.state.endpoint}/proxy-rule`).then(response => {
+	async connect() {
+		try {
+			this.setState({ proxyRuleLoading: true });
+			var response = await axios.get(`${this.state.endpoint}/proxy-rule`);
 			this.setState({ proxyRule: response.data });
 			this.setState({ proxyRuleLoading: false });
-		}, error => {
+		} catch (error) {
 			this.setState({ proxyRule: error });
 			this.setState({ proxyRuleLoading: false });
-		});
+		};
 	}
-	addProxyRule() {
-		this.setState({ proxyRuleAdding: true });
-		var { name, value } = this.state.newProxyRule;
-		axios.put(`${this.state.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } }).then(response => {
+	async addProxyRule() {
+		try {
+			this.setState({ proxyRuleAdding: true });
+			var { name, value } = this.state.newProxyRule;
+			var response = await axios.put(`${this.state.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
 			this.setState({ proxyRuleAdded: response.data });
 			this.setState({ proxyRuleAdding: false });
 			this.state.proxyRule[name] = value;
 			this.state.newProxyRule.name = '';
 			this.state.newProxyRule.value = '';
 			this.setState(this.state);
-		}, error => {
+		} catch (error) {
 			this.setState({ proxyRuleAdded: error });
 			this.setState({ proxyRuleAdding: false });
-		});
+		};
 	}
 	render() {
 		var { proxyRule, proxyRuleLoading, newProxyRule, proxyRuleAdding, proxyRuleAdded } = this.state;
