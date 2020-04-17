@@ -31,7 +31,7 @@ class Index extends React.Component {
 	addProxyRule() {
 		this.setState({ proxyRuleAdding: true });
 		var { name, value } = this.state.newProxyRule;
-		axios.put(`${this.state.endpoint}/proxy-rule/${encodeURIComponent(name)}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } }).then(response => {
+		axios.put(`${this.state.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } }).then(response => {
 			this.setState({ proxyRuleAdded: response.data });
 			this.setState({ proxyRuleAdding: false });
 			this.state.proxyRule[name] = value;
@@ -62,7 +62,7 @@ class Index extends React.Component {
 									Object.entries(proxyRule).length ?
 										Object.entries(proxyRule)
 											.map(([name, value]) => <tr key={name}>
-												<td>{name}</td>
+												<td>{name || "(default)"}</td>
 												<td>{value}</td>
 											</tr>) :
 										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
