@@ -16,6 +16,8 @@ class Index extends React.Component {
 	@observable newProxyRule = { name: '', value: '' };
 	@observable proxyRuleAdding = false;
 	@observable proxyRuleAdded = undefined;
+	@observable proxyRuleDeleting = {};
+	@observable proxyRuleDeleted = {};
 	async connect() {
 		try {
 			this.proxyRuleLoading = true;
@@ -42,12 +44,26 @@ class Index extends React.Component {
 			this.proxyRuleAdding = false;
 		};
 	}
+	async deleteProxyRule(name) {
+		try {
+			this.proxyRuleDeleting[name] = true;
+			var response = await axios.delete(`${this.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`);
+			this.proxyRuleDeleted[name] = response.data;
+			this.proxyRuleDeleting[name] = false;
+			delete this.proxyRule[name];
+		} catch (error) {
+			this.proxyRuleDeleted[name] = error;
+			this.proxyRuleDeleting[name] = false;
+		};
+	}
 	render() {
 		var proxyRule = this.proxyRule,
 			proxyRuleLoading = this.proxyRuleLoading,
 			newProxyRule = this.newProxyRule,
 			proxyRuleAdding = this.proxyRuleAdding,
-			proxyRuleAdded = this.proxyRuleAdded;
+			proxyRuleAdded = this.proxyRuleAdded,
+			proxyRuleDeleting = this.proxyRuleDeleting,
+			proxyRuleDeleted = this.proxyRuleDeleted;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
 				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
@@ -67,6 +83,11 @@ class Index extends React.Component {
 											.map(([name, value]) => <tr key={name}>
 												<td>{name || "(default)"}</td>
 												<td>{value}</td>
+												<td>
+													<button title="delete" onClick={this.deleteProxyRule.bind(this, name)}>❌</button>
+													{proxyRuleDeleting[name] && "(Deleting..)"}
+													{proxyRuleDeleted[name] instanceof Error && `error: ${proxyRuleDeleted[name].response && proxyRuleDeleted[name].response.data || proxyRuleDeleted[name].message}`}
+												</td>
 											</tr>) :
 										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
 								}
