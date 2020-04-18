@@ -1,55 +1,56 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { observable } from 'mobx';
+import { observer } from "mobx-react";
 import axios from 'axios';
 
 window.addEventListener('DOMContentLoaded', function () {
 	ReactDOM.render(<Index />, document.body);
 });
 
+@observer
 class Index extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			endpoint: "",
-			proxyRule: undefined,
-			proxyRuleLoading: false,
-			newProxyRule: { name: '', value: '' },
-			proxyRuleAdding: false,
-			proxyRuleAdded: undefined
-		};
-	}
+	@observable proxyRuleLoading = false;
+	@observable proxyRule = undefined;
+	@observable endpoint = "";
+	@observable newProxyRule = { name: '', value: '' };
+	@observable proxyRuleAdding = false;
+	@observable proxyRuleAdded = undefined;
 	async connect() {
 		try {
-			this.setState({ proxyRuleLoading: true });
-			var response = await axios.get(`${this.state.endpoint}/proxy-rule`);
-			this.setState({ proxyRule: response.data });
-			this.setState({ proxyRuleLoading: false });
+			this.proxyRuleLoading = true;
+			var response = await axios.get(`${this.endpoint}/proxy-rule`);
+			this.proxyRule = response.data;
+			this.proxyRuleLoading = false;
 		} catch (error) {
-			this.setState({ proxyRule: error });
-			this.setState({ proxyRuleLoading: false });
+			this.proxyRule = error;
+			this.proxyRuleLoading = false;
 		};
 	}
 	async addProxyRule() {
 		try {
-			this.setState({ proxyRuleAdding: true });
-			var { name, value } = this.state.newProxyRule;
-			var response = await axios.put(`${this.state.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
-			this.setState({ proxyRuleAdded: response.data });
-			this.setState({ proxyRuleAdding: false });
-			this.state.proxyRule[name] = value;
-			this.state.newProxyRule.name = '';
-			this.state.newProxyRule.value = '';
-			this.setState(this.state);
+			this.proxyRuleAdding = true;
+			var { name, value } = this.newProxyRule;
+			var response = await axios.put(`${this.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
+			this.proxyRuleAdded = response.data;
+			this.proxyRuleAdding = false;
+			this.proxyRule[name] = value;
+			this.newProxyRule.name = '';
+			this.newProxyRule.value = '';
 		} catch (error) {
-			this.setState({ proxyRuleAdded: error });
-			this.setState({ proxyRuleAdding: false });
+			this.proxyRuleAdded = error;
+			this.proxyRuleAdding = false;
 		};
 	}
 	render() {
-		var { proxyRule, proxyRuleLoading, newProxyRule, proxyRuleAdding, proxyRuleAdded } = this.state;
+		var proxyRule = this.proxyRule,
+			proxyRuleLoading = this.proxyRuleLoading,
+			newProxyRule = this.newProxyRule,
+			proxyRuleAdding = this.proxyRuleAdding,
+			proxyRuleAdded = this.proxyRuleAdded;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
-				target: <input value={this.state.endpoint} onChange={e => { this.setState({ endpoint: e.target.value }); }}></input>
+				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
 				<button>connect</button>
 			</form>
 			<section>
@@ -70,8 +71,8 @@ class Index extends React.Component {
 										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
 								}
 								<tr>
-									<td><input form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.name} onChange={e => { this.state.newProxyRule.name = e.target.value; this.setState(this.state); }} /></td>
-									<td><input form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.value} onChange={e => { this.state.newProxyRule.value = e.target.value; this.setState(this.state); }} /></td>
+									<td><input form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.name} onChange={e => { this.newProxyRule.name = e.target.value; }} /></td>
+									<td><input form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.value} onChange={e => { this.newProxyRule.value = e.target.value; }} /></td>
 									<td>
 										{!proxyRuleAdding && <button form="add-proxy-rule" title="add">➕</button>}
 										{proxyRuleAdding && "(adding..)"}
