@@ -18,6 +18,10 @@ class Index extends React.Component {
 	@observable proxyRuleAdded = undefined;
 	@observable proxyRuleDeleting = {};
 	@observable proxyRuleDeleted = {};
+	@observable proxyRuleEditing = {};
+	@observable updatedProxyRule = {};
+	@observable proxyRuleUpdating = {};
+	@observable proxyRuleUpdated = {};
 	async connect() {
 		try {
 			this.proxyRuleLoading = true;
@@ -56,6 +60,19 @@ class Index extends React.Component {
 			this.proxyRuleDeleting[name] = false;
 		};
 	}
+	async updateProxyRule(name) {
+		try {
+			this.proxyRuleUpdating[name] = true;
+			var response = await axios.put(`${this.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, JSON.stringify(this.updatedProxyRule[name]), { headers: { 'Content-Type': 'application/json' } });
+			this.proxyRuleUpdated[name] = response.data;
+			this.proxyRuleUpdating[name] = false;
+			this.proxyRule[name] = this.updatedProxyRule[name];
+			this.proxyRuleEditing[name] = false;
+		} catch (error) {
+			this.proxyRuleUpdated[name] = error;
+			this.proxyRuleUpdating[name] = false;
+		};
+	}
 	render() {
 		var proxyRule = this.proxyRule,
 			proxyRuleLoading = this.proxyRuleLoading,
@@ -63,7 +80,11 @@ class Index extends React.Component {
 			proxyRuleAdding = this.proxyRuleAdding,
 			proxyRuleAdded = this.proxyRuleAdded,
 			proxyRuleDeleting = this.proxyRuleDeleting,
-			proxyRuleDeleted = this.proxyRuleDeleted;
+			proxyRuleDeleted = this.proxyRuleDeleted,
+			proxyRuleEditing = this.proxyRuleEditing,
+			updatedProxyRule = this.updatedProxyRule,
+			proxyRuleUpdating = this.proxyRuleUpdating,
+			proxyRuleUpdated = this.proxyRuleUpdated;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
 				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
@@ -82,12 +103,26 @@ class Index extends React.Component {
 										Object.entries(proxyRule)
 											.map(([name, value]) => <tr key={name}>
 												<td>{name || "(default)"}</td>
-												<td>{value}</td>
+												<td>{
+													proxyRuleEditing[name] ?
+														<input type="text" form={`update-proxy-rule-${name}`} disabled={proxyRuleUpdating[name]} value={updatedProxyRule[name]} onChange={e => { updatedProxyRule[name] = e.target.value; }} /> :
+														value
+												}</td>
 												<td>
 													<button title="delete" onClick={this.deleteProxyRule.bind(this, name)}>❌</button>
 													{proxyRuleDeleting[name] && "(Deleting..)"}
 													{proxyRuleDeleted[name] instanceof Error && `error: ${proxyRuleDeleted[name].response && proxyRuleDeleted[name].response.data || proxyRuleDeleted[name].message}`}
+													{
+														proxyRuleEditing[name] && !proxyRuleUpdating[name] ? <>
+															<button onClick={() => { proxyRuleEditing[name] = false; }}>cancel</button>
+															<button form={`update-proxy-rule-${name}`}>submit</button>
+														</> :
+															<button title="edit" onClick={() => { updatedProxyRule[name] = proxyRule[name]; proxyRuleEditing[name] = true; }}>🖊</button>
+													}
+													{proxyRuleUpdating[name] && "(Updating..)"}
+													{proxyRuleUpdated[name] instanceof Error && `error: ${proxyRuleUpdated[name].response && proxyRuleUpdated[name].response.data || proxyRuleUpdated[name].message}`}
 												</td>
+												<form id={`update-proxy-rule-${name}`} onSubmit={e => { this.updateProxyRule(name); e.preventDefault(); }}></form>
 											</tr>) :
 										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
 								}
