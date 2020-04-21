@@ -22,6 +22,10 @@ class Index extends React.Component {
 	@observable updatedProxyRule = {};
 	@observable proxyRuleUpdating = {};
 	@observable proxyRuleUpdated = {};
+	@observable proxyRuleNameEditing = {};
+	@observable updatedProxyRuleName = {};
+	@observable proxyRuleRenaming = {};
+	@observable proxyRuleRenamed = {};
 	async connect() {
 		try {
 			this.proxyRuleLoading = true;
@@ -73,6 +77,21 @@ class Index extends React.Component {
 			this.proxyRuleUpdating[name] = false;
 		};
 	}
+	async renameProxyRule(name) {
+		try {
+			this.proxyRuleRenaming[name] = true;
+			var newName = this.updatedProxyRuleName[name];
+			var response = await axios(`${this.endpoint}/proxy-rule/${encodeURIComponent(name || 'default')}`, { method: 'MOVE', headers: { 'Destination': `/proxy-rule/${encodeURIComponent(newName || 'default')}`, Overwrite: 'F' } });
+			this.proxyRuleRenamed[name] = response.data;
+			this.proxyRuleRenaming[name] = false;
+			this.proxyRule[newName] = this.proxyRule[name];
+			delete this.proxyRule[name];
+			this.proxyRuleNameEditing[name] = false;
+		} catch (error) {
+			this.proxyRuleRenamed[name] = error;
+			this.proxyRuleRenaming[name] = false;
+		};
+	}
 	render() {
 		var proxyRule = this.proxyRule,
 			proxyRuleLoading = this.proxyRuleLoading,
@@ -84,7 +103,11 @@ class Index extends React.Component {
 			proxyRuleEditing = this.proxyRuleEditing,
 			updatedProxyRule = this.updatedProxyRule,
 			proxyRuleUpdating = this.proxyRuleUpdating,
-			proxyRuleUpdated = this.proxyRuleUpdated;
+			proxyRuleUpdated = this.proxyRuleUpdated,
+			proxyRuleNameEditing = this.proxyRuleNameEditing,
+			updatedProxyRuleName = this.updatedProxyRuleName,
+			proxyRuleRenaming = this.proxyRuleRenaming,
+			proxyRuleRenamed = this.proxyRuleRenamed;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
 				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
@@ -102,7 +125,11 @@ class Index extends React.Component {
 									Object.entries(proxyRule).length ?
 										Object.entries(proxyRule)
 											.map(([name, value]) => <tr key={name}>
-												<td>{name || "(default)"}</td>
+												<td>{
+													proxyRuleNameEditing[name] ?
+														<input type="text" form={`rename-proxy-rule-${name}`} disabled={proxyRuleRenaming[name]} value={updatedProxyRuleName[name]} onChange={e => { updatedProxyRuleName[name] = e.target.value; }} /> :
+														name || "(default)"
+												}</td>
 												<td>{
 													proxyRuleEditing[name] ?
 														<input type="text" form={`update-proxy-rule-${name}`} disabled={proxyRuleUpdating[name]} value={updatedProxyRule[name]} onChange={e => { updatedProxyRule[name] = e.target.value; }} /> :
@@ -121,8 +148,18 @@ class Index extends React.Component {
 													}
 													{proxyRuleUpdating[name] && "(Updating..)"}
 													{proxyRuleUpdated[name] instanceof Error && `error: ${proxyRuleUpdated[name].response && proxyRuleUpdated[name].response.data || proxyRuleUpdated[name].message}`}
+													{
+														proxyRuleNameEditing[name] && !proxyRuleRenaming[name] ? <>
+															<button onClick={() => { proxyRuleNameEditing[name] = false; }}>cancel</button>
+															<button form={`rename-proxy-rule-${name}`}>submit</button>
+														</> :
+															<button onClick={() => { updatedProxyRuleName[name] = name; proxyRuleNameEditing[name] = true; }}>rename</button>
+													}
+													{proxyRuleRenaming[name] && "(Renaming..)"}
+													{proxyRuleRenamed[name] instanceof Error && `error: ${proxyRuleRenamed[name].response && proxyRuleRenamed[name].response.data || proxyRuleRenamed[name].message}`}
 												</td>
 												<form id={`update-proxy-rule-${name}`} onSubmit={e => { this.updateProxyRule(name); e.preventDefault(); }}></form>
+												<form id={`rename-proxy-rule-${name}`} onSubmit={e => { this.renameProxyRule(name); e.preventDefault(); }}></form>
 											</tr>) :
 										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
 								}
