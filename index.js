@@ -118,7 +118,7 @@ class Index extends React.Component {
 				<p>{proxyRuleLoading && "loading..."}</p>
 				{proxyRule && (
 					proxyRule instanceof Error ?
-						`error: ${proxyRule.response && proxyRule.response.data || proxyRule.message}` :
+						`error: ${proxyRule.response?.data || proxyRule.message}` :
 						<>
 							<table>
 								{
@@ -138,7 +138,7 @@ class Index extends React.Component {
 												<td>
 													<button title="delete" onClick={this.deleteProxyRule.bind(this, name)}>❌</button>
 													{proxyRuleDeleting[name] && "(Deleting..)"}
-													{proxyRuleDeleted[name] instanceof Error && `error: ${proxyRuleDeleted[name].response && proxyRuleDeleted[name].response.data || proxyRuleDeleted[name].message}`}
+													{proxyRuleDeleted[name] instanceof Error && `error: ${proxyRuleDeleted[name].response?.data || proxyRuleDeleted[name].message}`}
 													{
 														proxyRuleEditing[name] && !proxyRuleUpdating[name] ? <>
 															<button onClick={() => { proxyRuleEditing[name] = false; }}>cancel</button>
@@ -147,7 +147,7 @@ class Index extends React.Component {
 															<button title="edit" onClick={() => { updatedProxyRule[name] = proxyRule[name]; proxyRuleEditing[name] = true; }}>🖊</button>
 													}
 													{proxyRuleUpdating[name] && "(Updating..)"}
-													{proxyRuleUpdated[name] instanceof Error && `error: ${proxyRuleUpdated[name].response && proxyRuleUpdated[name].response.data || proxyRuleUpdated[name].message}`}
+													{proxyRuleUpdated[name] instanceof Error && `error: ${proxyRuleUpdated[name].response?.data || proxyRuleUpdated[name].message}`}
 													{
 														proxyRuleNameEditing[name] && !proxyRuleRenaming[name] ? <>
 															<button onClick={() => { proxyRuleNameEditing[name] = false; }}>cancel</button>
@@ -156,7 +156,7 @@ class Index extends React.Component {
 															<button onClick={() => { updatedProxyRuleName[name] = name; proxyRuleNameEditing[name] = true; }}>rename</button>
 													}
 													{proxyRuleRenaming[name] && "(Renaming..)"}
-													{proxyRuleRenamed[name] instanceof Error && `error: ${proxyRuleRenamed[name].response && proxyRuleRenamed[name].response.data || proxyRuleRenamed[name].message}`}
+													{proxyRuleRenamed[name] instanceof Error && `error: ${proxyRuleRenamed[name].response?.data || proxyRuleRenamed[name].message}`}
 												</td>
 												<form id={`update-proxy-rule-${name}`} onSubmit={e => { this.updateProxyRule(name); e.preventDefault(); }}></form>
 												<form id={`rename-proxy-rule-${name}`} onSubmit={e => { this.renameProxyRule(name); e.preventDefault(); }}></form>
@@ -169,7 +169,7 @@ class Index extends React.Component {
 									<td>
 										{!proxyRuleAdding && <button form="add-proxy-rule" title="add">➕</button>}
 										{proxyRuleAdding && "(adding..)"}
-										{proxyRuleAdded instanceof Error && `error: ${proxyRuleAdded.response && proxyRuleAdded.response.data || proxyRuleAdded.message}`}
+										{proxyRuleAdded instanceof Error && `error: ${proxyRuleAdded.response?.data || proxyRuleAdded.message}`}
 									</td>
 								</tr>
 							</table>
