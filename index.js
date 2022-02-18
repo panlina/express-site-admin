@@ -10,9 +10,9 @@ window.addEventListener('DOMContentLoaded', function () {
 
 @observer
 class Index extends React.Component {
+	@observable endpoint = "";
 	@observable proxyRuleLoading = false;
 	@observable proxyRule = undefined;
-	@observable endpoint = "";
 	@observable newProxyRule = { name: '', value: '' };
 	@observable proxyRuleAdding = false;
 	@observable proxyRuleAdded = undefined;
