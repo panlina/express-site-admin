@@ -26,16 +26,44 @@ class Index extends React.Component {
 	@observable updatedProxyRuleName = {};
 	@observable proxyRuleRenaming = {};
 	@observable proxyRuleRenamed = {};
-	async connect() {
-		try {
-			this.proxyRuleLoading = true;
-			var response = await axios.get(`${this.endpoint}/proxy-rule`);
-			this.proxyRule = response.data;
-			this.proxyRuleLoading = false;
-		} catch (error) {
-			this.proxyRule = error;
-			this.proxyRuleLoading = false;
-		};
+	@observable vhostLoading = false;
+	@observable vhost = undefined;
+	@observable newVHost = { name: '', value: '' };
+	@observable vhostAdding = false;
+	@observable vhostAdded = undefined;
+	@observable vhostDeleting = {};
+	@observable vhostDeleted = {};
+	@observable vhostEditing = {};
+	@observable updatedVHost = {};
+	@observable vhostUpdating = {};
+	@observable vhostUpdated = {};
+	@observable vhostNameEditing = {};
+	@observable updatedVHostName = {};
+	@observable vhostRenaming = {};
+	@observable vhostRenamed = {};
+	connect() {
+		(async () => {
+			try {
+				this.proxyRuleLoading = true;
+				var response = await axios.get(`${this.endpoint}/proxy-rule`);
+				this.proxyRule = response.data;
+				this.proxyRuleLoading = false;
+			} catch (error) {
+				this.proxyRule = error;
+				this.proxyRuleLoading = false;
+			};
+		})();
+		(async () => {
+			try {
+				this.vhostLoading = true;
+				var response = await axios.get(`${this.endpoint}/vhost`);
+				this.vhost = response.data;
+				this.vhostLoading = false;
+			} catch (error) {
+				this.vhost = error;
+				this.vhostLoading = false;
+			};
+		})();
 	}
 	async addProxyRule() {
 		try {
@@ -92,6 +120,61 @@ class Index extends React.Component {
 			this.proxyRuleRenaming[name] = false;
 		};
 	}
+	async addVHost() {
+		try {
+			this.vhostAdding = true;
+			var { name, value } = this.newVHost;
+			var response = await axios.put(`${this.endpoint}/vhost/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
+			this.vhostAdded = response.data;
+			this.vhostAdding = false;
+			this.vhost[name] = value;
+			this.newVHost.name = '';
+			this.newVHost.value = '';
+		} catch (error) {
+			this.vhostAdded = error;
+			this.vhostAdding = false;
+		};
+	}
+	async deleteVHost(name) {
+		try {
+			this.vhostDeleting[name] = true;
+			var response = await axios.delete(`${this.endpoint}/vhost/${encodeURIComponent(name || 'default')}`);
+			this.vhostDeleted[name] = response.data;
+			this.vhostDeleting[name] = false;
+			delete this.vhost[name];
+		} catch (error) {
+			this.vhostDeleted[name] = error;
+			this.vhostDeleting[name] = false;
+		};
+	}
+	async updateVHost(name) {
+		try {
+			this.vhostUpdating[name] = true;
+			var response = await axios.put(`${this.endpoint}/vhost/${encodeURIComponent(name || 'default')}`, JSON.stringify(this.updatedVHost[name]), { headers: { 'Content-Type': 'application/json' } });
+			this.vhostUpdated[name] = response.data;
+			this.vhostUpdating[name] = false;
+			this.vhost[name] = this.updatedVHost[name];
+			this.vhostEditing[name] = false;
+		} catch (error) {
+			this.vhostUpdated[name] = error;
+			this.vhostUpdating[name] = false;
+		};
+	}
+	async renameVHost(name) {
+		try {
+			this.vhostRenaming[name] = true;
+			var newName = this.updatedVHostName[name];
+			var response = await axios(`${this.endpoint}/vhost/${encodeURIComponent(name || 'default')}`, { method: 'MOVE', headers: { 'Destination': `/vhost/${encodeURIComponent(newName || 'default')}`, Overwrite: 'F' } });
+			this.vhostRenamed[name] = response.data;
+			this.vhostRenaming[name] = false;
+			this.vhost[newName] = this.vhost[name];
+			delete this.vhost[name];
+			this.vhostNameEditing[name] = false;
+		} catch (error) {
+			this.vhostRenamed[name] = error;
+			this.vhostRenaming[name] = false;
+		};
+	}
 	render() {
 		var proxyRule = this.proxyRule,
 			proxyRuleLoading = this.proxyRuleLoading,
@@ -108,6 +191,21 @@ class Index extends React.Component {
 			updatedProxyRuleName = this.updatedProxyRuleName,
 			proxyRuleRenaming = this.proxyRuleRenaming,
 			proxyRuleRenamed = this.proxyRuleRenamed;
+		var vhost = this.vhost,
+			vhostLoading = this.vhostLoading,
+			newVHost = this.newVHost,
+			vhostAdding = this.vhostAdding,
+			vhostAdded = this.vhostAdded,
+			vhostDeleting = this.vhostDeleting,
+			vhostDeleted = this.vhostDeleted,
+			vhostEditing = this.vhostEditing,
+			updatedVHost = this.updatedVHost,
+			vhostUpdating = this.vhostUpdating,
+			vhostUpdated = this.vhostUpdated,
+			vhostNameEditing = this.vhostNameEditing,
+			updatedVHostName = this.updatedVHostName,
+			vhostRenaming = this.vhostRenaming,
+			vhostRenamed = this.vhostRenamed;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
 				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
@@ -174,6 +272,70 @@ class Index extends React.Component {
 								</tr>
 							</table>
 							<form id="add-proxy-rule" onSubmit={e => { this.addProxyRule(); e.preventDefault(); }}></form>
+						</>
+				)}
+			</section>
+			<section>
+				<h4>vhost</h4>
+				<p>{vhostLoading && "loading..."}</p>
+				{vhost && (
+					vhost instanceof Error ?
+						`error: ${vhost.response?.data || vhost.message}` :
+						<>
+							<table>
+								{
+									Object.entries(vhost).length ?
+										Object.entries(vhost)
+											.map(([name, value]) => <tr key={name}>
+												<td>{
+													vhostNameEditing[name] ?
+														<input type="text" form={`rename-vhost-${name}`} disabled={vhostRenaming[name]} value={updatedVHostName[name]} onChange={e => { updatedVHostName[name] = e.target.value; }} /> :
+														name || "(default)"
+												}</td>
+												<td>{
+													vhostEditing[name] ?
+														<input type="text" form={`update-vhost-${name}`} disabled={vhostUpdating[name]} value={updatedVHost[name]} onChange={e => { updatedVHost[name] = e.target.value; }} /> :
+														value
+												}</td>
+												<td>
+													<button title="delete" onClick={this.deleteVHost.bind(this, name)}>❌</button>
+													{vhostDeleting[name] && "(Deleting..)"}
+													{vhostDeleted[name] instanceof Error && `error: ${vhostDeleted[name].response?.data || vhostDeleted[name].message}`}
+													{
+														vhostEditing[name] && !vhostUpdating[name] ? <>
+															<button onClick={() => { vhostEditing[name] = false; }}>cancel</button>
+															<button form={`update-vhost-${name}`}>submit</button>
+														</> :
+															<button title="edit" onClick={() => { updatedVHost[name] = vhost[name]; vhostEditing[name] = true; }}>🖊</button>
+													}
+													{vhostUpdating[name] && "(Updating..)"}
+													{vhostUpdated[name] instanceof Error && `error: ${vhostUpdated[name].response?.data || vhostUpdated[name].message}`}
+													{
+														vhostNameEditing[name] && !vhostRenaming[name] ? <>
+															<button onClick={() => { vhostNameEditing[name] = false; }}>cancel</button>
+															<button form={`rename-vhost-${name}`}>submit</button>
+														</> :
+															<button onClick={() => { updatedVHostName[name] = name; vhostNameEditing[name] = true; }}>rename</button>
+													}
+													{vhostRenaming[name] && "(Renaming..)"}
+													{vhostRenamed[name] instanceof Error && `error: ${vhostRenamed[name].response?.data || vhostRenamed[name].message}`}
+												</td>
+												<form id={`update-vhost-${name}`} onSubmit={e => { this.updateVHost(name); e.preventDefault(); }}></form>
+												<form id={`rename-vhost-${name}`} onSubmit={e => { this.renameVHost(name); e.preventDefault(); }}></form>
+											</tr>) :
+										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
+								}
+								<tr>
+									<td><input form="add-vhost" disabled={vhostAdding} value={newVHost.name} onChange={e => { this.newVHost.name = e.target.value; }} /></td>
+									<td><input form="add-vhost" disabled={vhostAdding} value={newVHost.value} onChange={e => { this.newVHost.value = e.target.value; }} /></td>
+									<td>
+										{!vhostAdding && <button form="add-vhost" title="add">➕</button>}
+										{vhostAdding && "(adding..)"}
+										{vhostAdded instanceof Error && `error: ${vhostAdded.response?.data || vhostAdded.message}`}
+									</td>
+								</tr>
+							</table>
+							<form id="add-vhost" onSubmit={e => { this.addVHost(); e.preventDefault(); }}></form>
 						</>
 				)}
 			</section>
