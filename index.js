@@ -323,7 +323,7 @@ class Index extends React.Component {
 												<form id={`update-vhost-${name}`} onSubmit={e => { this.updateVHost(name); e.preventDefault(); }}></form>
 												<form id={`rename-vhost-${name}`} onSubmit={e => { this.renameVHost(name); e.preventDefault(); }}></form>
 											</tr>) :
-										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
+										[<tr><td colSpan={2}>(no vhosts)</td></tr>]
 								}
 								<tr>
 									<td><input form="add-vhost" disabled={vhostAdding} value={newVHost.name} onChange={e => { this.newVHost.name = e.target.value; }} /></td>
