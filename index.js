@@ -262,8 +262,8 @@ class Index extends React.Component {
 										[<tr><td colSpan={2}>(no proxy rules)</td></tr>]
 								}
 								<tr>
-									<td><input form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.name} onChange={e => { this.newProxyRule.name = e.target.value; }} /></td>
-									<td><input form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.value} onChange={e => { this.newProxyRule.value = e.target.value; }} /></td>
+									<td><input type="text" form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.name} onChange={e => { this.newProxyRule.name = e.target.value; }} /></td>
+									<td><input type="text" form="add-proxy-rule" disabled={proxyRuleAdding} value={newProxyRule.value} onChange={e => { this.newProxyRule.value = e.target.value; }} /></td>
 									<td>
 										{!proxyRuleAdding && <button form="add-proxy-rule" title="add">➕</button>}
 										{proxyRuleAdding && "(adding..)"}
@@ -326,8 +326,8 @@ class Index extends React.Component {
 										[<tr><td colSpan={2}>(no vhosts)</td></tr>]
 								}
 								<tr>
-									<td><input form="add-vhost" disabled={vhostAdding} value={newVHost.name} onChange={e => { this.newVHost.name = e.target.value; }} /></td>
-									<td><input form="add-vhost" disabled={vhostAdding} value={newVHost.value} onChange={e => { this.newVHost.value = e.target.value; }} /></td>
+									<td><input type="text" form="add-vhost" disabled={vhostAdding} value={newVHost.name} onChange={e => { this.newVHost.name = e.target.value; }} /></td>
+									<td><input type="text" form="add-vhost" disabled={vhostAdding} value={newVHost.value} onChange={e => { this.newVHost.value = e.target.value; }} /></td>
 									<td>
 										{!vhostAdding && <button form="add-vhost" title="add">➕</button>}
 										{vhostAdding && "(adding..)"}
