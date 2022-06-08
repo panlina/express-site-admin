@@ -41,6 +41,21 @@ class Index extends React.Component {
 	@observable updatedVHostName = {};
 	@observable vhostRenaming = {};
 	@observable vhostRenamed = {};
+	@observable appLoading = false;
+	@observable app = undefined;
+	@observable newApp = { name: '', value: { type: 'standalone', module: "", arguments: "", port: '' } };
+	@observable appAdding = false;
+	@observable appAdded = undefined;
+	@observable appDeleting = {};
+	@observable appDeleted = {};
+	@observable appEditing = {};
+	@observable updatedApp = {};
+	@observable appUpdating = {};
+	@observable appUpdated = {};
+	@observable appNameEditing = {};
+	@observable updatedAppName = {};
+	@observable appRenaming = {};
+	@observable appRenamed = {};
 	connect() {
 		(async () => {
 			try {
@@ -62,6 +77,17 @@ class Index extends React.Component {
 			} catch (error) {
 				this.vhost = error;
 				this.vhostLoading = false;
+			};
+		})();
+		(async () => {
+			try {
+				this.appLoading = true;
+				var response = await axios.get(`${this.endpoint}/app`);
+				this.app = response.data;
+				this.appLoading = false;
+			} catch (error) {
+				this.app = error;
+				this.appLoading = false;
 			};
 		})();
 	}
@@ -175,6 +201,93 @@ class Index extends React.Component {
 			this.vhostRenaming[name] = false;
 		};
 	}
+	async addApp() {
+		try {
+			this.appAdding = true;
+			var { name, value } = this.newApp;
+			try {
+				var value = this.appEditingStateToValue(value);
+			}
+			catch (e) {
+				alert(e);
+				return;
+			}
+			var response = await axios.put(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
+			this.appAdded = response.data;
+			this.appAdding = false;
+			this.app[name] = value;
+			this.newApp.name = '';
+			this.newApp.value = { type: 'standalone', module: "", arguments: "", port: '' };
+		} catch (error) {
+			this.appAdded = error;
+			this.appAdding = false;
+		};
+	}
+	async deleteApp(name) {
+		try {
+			this.appDeleting[name] = true;
+			var response = await axios.delete(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}`);
+			this.appDeleted[name] = response.data;
+			this.appDeleting[name] = false;
+			delete this.app[name];
+		} catch (error) {
+			this.appDeleted[name] = error;
+			this.appDeleting[name] = false;
+		};
+	}
+	appEditingStateToValue(app) {
+		try { JSON.parse(app.arguments); }
+		catch (e) { throw "arguments is not valid."; }
+		if (app.port && isNaN(+app.port))
+			throw "port is not valid.";
+		return {
+			...app,
+			arguments: JSON.parse(app.arguments),
+			port: app.port ? +app.port : null
+		};
+	}
+	appValueToEditingState(app) {
+		return {
+			...app,
+			arguments: JSON.stringify(app.arguments),
+			port: app.port != null ? app.port.toString() : ''
+		};
+	}
+	async updateApp(name) {
+		try {
+			this.appUpdating[name] = true;
+			try {
+				var value = this.appEditingStateToValue(this.updatedApp[name]);
+			}
+			catch (e) {
+				alert(e);
+				return;
+			}
+			var response = await axios.put(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
+			this.appUpdated[name] = response.data;
+			this.appUpdating[name] = false;
+			this.app[name] = value;
+			this.appEditing[name] = false;
+		} catch (error) {
+			this.appUpdated[name] = error;
+			this.appUpdating[name] = false;
+		};
+	}
+	async renameApp(name) {
+		try {
+			this.appRenaming[name] = true;
+			var newName = this.updatedAppName[name];
+			var response = await axios(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}`, { method: 'MOVE', headers: { 'Destination': `/app/${encodeURIComponent(newName || 'default')}`, Overwrite: 'F' } });
+			this.appRenamed[name] = response.data;
+			this.appRenaming[name] = false;
+			this.app[newName] = this.app[name];
+			delete this.app[name];
+			this.appNameEditing[name] = false;
+		} catch (error) {
+			this.appRenamed[name] = error;
+			this.appRenaming[name] = false;
+		};
+	}
 	render() {
 		var proxyRule = this.proxyRule,
 			proxyRuleLoading = this.proxyRuleLoading,
@@ -206,6 +319,21 @@ class Index extends React.Component {
 			updatedVHostName = this.updatedVHostName,
 			vhostRenaming = this.vhostRenaming,
 			vhostRenamed = this.vhostRenamed;
+		var app = this.app,
+			appLoading = this.appLoading,
+			newApp = this.newApp,
+			appAdding = this.appAdding,
+			appAdded = this.appAdded,
+			appDeleting = this.appDeleting,
+			appDeleted = this.appDeleted,
+			appEditing = this.appEditing,
+			updatedApp = this.updatedApp,
+			appUpdating = this.appUpdating,
+			appUpdated = this.appUpdated,
+			appNameEditing = this.appNameEditing,
+			updatedAppName = this.updatedAppName,
+			appRenaming = this.appRenaming,
+			appRenamed = this.appRenamed;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
 				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
@@ -336,6 +464,94 @@ class Index extends React.Component {
 								</tr>
 							</table>
 							<form id="add-vhost" onSubmit={e => { this.addVHost(); e.preventDefault(); }}></form>
+						</>
+				)}
+			</section>
+			<section>
+				<h4>app</h4>
+				<p>{appLoading && "loading..."}</p>
+				{app && (
+					app instanceof Error ?
+						`error: ${app.response?.data || app.message}` :
+						<>
+							<table>
+								{
+									Object.entries(app).length ?
+										Object.entries(app)
+											.map(([name, value]) => <tr key={name}>
+												<td>{
+													appNameEditing[name] ?
+														<input type="text" form={`rename-app-${name}`} disabled={appRenaming[name]} value={updatedAppName[name]} onChange={e => { updatedAppName[name] = e.target.value; }} /> :
+														name || "(default)"
+												}</td>
+												<td>{
+													appEditing[name] ?
+														<select form={`update-app-${name}`} required disabled={appUpdating[name]} value={updatedApp[name].type} onChange={e => { updatedApp[name].type = e.target.value; }}>
+															<option>middleware</option>
+															<option>standalone</option>
+														</select> :
+														value.type
+												}</td>
+												<td>{
+													appEditing[name] ?
+														<input type="text" form={`update-app-${name}`} disabled={appUpdating[name]} value={updatedApp[name].module} onChange={e => { updatedApp[name].module = e.target.value; }} /> :
+														value.module
+												}</td>
+												<td>{
+													appEditing[name] ?
+														<input type="text" form={`update-app-${name}`} disabled={appUpdating[name]} value={updatedApp[name].arguments} onChange={e => { updatedApp[name].arguments = e.target.value; }} /> :
+														JSON.stringify(value.arguments)
+												}</td>
+												<td>{
+													appEditing[name] ?
+														<input type="number" min="0" max="65535" form={`update-app-${name}`} disabled={appUpdating[name]} value={updatedApp[name].port} onChange={e => { updatedApp[name].port = e.target.value; }} /> :
+														value.port
+												}</td>
+												<td>
+													<button title="delete" onClick={this.deleteApp.bind(this, name)}>❌</button>
+													{appDeleting[name] && "(Deleting..)"}
+													{appDeleted[name] instanceof Error && `error: ${appDeleted[name].response?.data || appDeleted[name].message}`}
+													{
+														appEditing[name] && !appUpdating[name] ? <>
+															<button onClick={() => { appEditing[name] = false; }}>cancel</button>
+															<button form={`update-app-${name}`}>submit</button>
+														</> :
+															<button title="edit" onClick={() => { updatedApp[name] = this.appValueToEditingState(app[name]); appEditing[name] = true; }}>🖊</button>
+													}
+													{appUpdating[name] && "(Updating..)"}
+													{appUpdated[name] instanceof Error && `error: ${appUpdated[name].response?.data || appUpdated[name].message}`}
+													{
+														appNameEditing[name] && !appRenaming[name] ? <>
+															<button onClick={() => { appNameEditing[name] = false; }}>cancel</button>
+															<button form={`rename-app-${name}`}>submit</button>
+														</> :
+															<button onClick={() => { updatedAppName[name] = name; appNameEditing[name] = true; }}>rename</button>
+													}
+													{appRenaming[name] && "(Renaming..)"}
+													{appRenamed[name] instanceof Error && `error: ${appRenamed[name].response?.data || appRenamed[name].message}`}
+												</td>
+												<form id={`update-app-${name}`} onSubmit={e => { this.updateApp(name); e.preventDefault(); }}></form>
+												<form id={`rename-app-${name}`} onSubmit={e => { this.renameApp(name); e.preventDefault(); }}></form>
+											</tr>) :
+										[<tr><td colSpan={5}>(no apps)</td></tr>]
+								}
+								<tr>
+									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.name} onChange={e => { newApp.name = e.target.value; }} /></td>
+									<td><select form="add-app" required disabled={appAdding} value={newApp.value.type} onChange={e => { newApp.value.type = e.target.value; }}>
+										<option>middleware</option>
+										<option>standalone</option>
+									</select></td>
+									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.module} onChange={e => { newApp.value.module = e.target.value; }} /></td>
+									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.arguments} onChange={e => { newApp.value.arguments = e.target.value; }} /></td>
+									<td><input type="number" min="0" max="65535" form="add-app" disabled={appAdding} value={newApp.value.port} onChange={e => { newApp.value.port = e.target.value; }} /></td>
+									<td>
+										{!appAdding && <button form="add-app" title="add">➕</button>}
+										{appAdding && "(adding..)"}
+										{appAdded instanceof Error && `error: ${appAdded.response?.data || appAdded.message}`}
+									</td>
+								</tr>
+							</table>
+							<form id="add-app" onSubmit={e => { this.addApp(); e.preventDefault(); }}></form>
 						</>
 				)}
 			</section>
