@@ -60,6 +60,13 @@ class Index extends React.Component {
 	@observable appStarted = {};
 	@observable appStopping = {};
 	@observable appStopped = {};
+	@observable moduleLoading = false;
+	@observable module = undefined;
+	@observable newModule = { value: { source: '' } };
+	@observable moduleAdding = false;
+	@observable moduleAdded = undefined;
+	@observable moduleDeleting = {};
+	@observable moduleDeleted = {};
 	connect() {
 		(async () => {
 			try {
@@ -92,6 +99,17 @@ class Index extends React.Component {
 			} catch (error) {
 				this.app = error;
 				this.appLoading = false;
+			};
+		})();
+		(async () => {
+			try {
+				this.moduleLoading = true;
+				var response = await axios.get(`${this.endpoint}/module`);
+				this.module = response.data;
+				this.moduleLoading = false;
+			} catch (error) {
+				this.module = error;
+				this.moduleLoading = false;
 			};
 		})();
 		this.eventSource && this.eventSource.close();
@@ -327,6 +345,34 @@ class Index extends React.Component {
 			this.appStopping[name] = false;
 		}
 	}
+	async addModule() {
+		try {
+			this.moduleAdding = true;
+			var { value } = this.newModule;
+			var response = await axios.post(`${this.endpoint}/module/`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
+			this.moduleAdded = response.data;
+			this.moduleAdding = false;
+			var location = response.headers['location'];
+			var name = location.substr(location.indexOf('/', 1) + 1);
+			this.module[name] = value;
+			this.newModule.value = { source: '' };
+		} catch (error) {
+			this.moduleAdded = error;
+			this.moduleAdding = false;
+		};
+	}
+	async deleteModule(name) {
+		try {
+			this.moduleDeleting[name] = true;
+			var response = await axios.delete(`${this.endpoint}/module/${encodeURIComponent(name)}`);
+			this.moduleDeleted[name] = response.data;
+			this.moduleDeleting[name] = false;
+			delete this.module[name];
+		} catch (error) {
+			this.moduleDeleted[name] = error;
+			this.moduleDeleting[name] = false;
+		};
+	}
 	render() {
 		var proxyRule = this.proxyRule,
 			proxyRuleLoading = this.proxyRuleLoading,
@@ -373,6 +419,13 @@ class Index extends React.Component {
 			updatedAppName = this.updatedAppName,
 			appRenaming = this.appRenaming,
 			appRenamed = this.appRenamed;
+		var module = this.module,
+			moduleLoading = this.moduleLoading,
+			newModule = this.newModule,
+			moduleAdding = this.moduleAdding,
+			moduleAdded = this.moduleAdded,
+			moduleDeleting = this.moduleDeleting,
+			moduleDeleted = this.moduleDeleted;
 		return <>
 			<form onSubmit={e => { this.connect(); e.preventDefault(); }}>
 				target: <input value={this.endpoint} onChange={e => { this.endpoint = e.target.value; }}></input>
@@ -598,6 +651,42 @@ class Index extends React.Component {
 								</tr>
 							</table>
 							<form id="add-app" onSubmit={e => { this.addApp(); e.preventDefault(); }}></form>
+						</>
+				)}
+			</section>
+			<section>
+				<h4>module</h4>
+				<p>{moduleLoading && "loading..."}</p>
+				{module && (
+					module instanceof Error ?
+						`error: ${module.response?.data || module.message}` :
+						<>
+							<table>
+								{
+									Object.entries(module).length ?
+										Object.entries(module)
+											.map(([name, value]) => <tr key={name}>
+												<td>{name}</td>
+												<td>{value.source}</td>
+												<td>
+													<button title="delete" onClick={this.deleteModule.bind(this, name)}>❌</button>
+													{moduleDeleting[name] && "(Deleting..)"}
+													{moduleDeleted[name] instanceof Error && `error: ${moduleDeleted[name].response?.data || moduleDeleted[name].message}`}
+												</td>
+											</tr>) :
+										[<tr><td colSpan={2}>(no modules)</td></tr>]
+								}
+								<tr>
+									<td></td>
+									<td><input type="text" form="add-module" disabled={moduleAdding} value={newModule.value.source} onChange={e => { newModule.value.source = e.target.value; }} /></td>
+									<td>
+										{!moduleAdding && <button form="add-module" title="add">➕</button>}
+										{moduleAdding && "(adding..)"}
+										{moduleAdded instanceof Error && `error: ${moduleAdded.response?.data || moduleAdded.message}`}
+									</td>
+								</tr>
+							</table>
+							<form id="add-module" onSubmit={e => { this.addModule(); e.preventDefault(); }}></form>
 						</>
 				)}
 			</section>
