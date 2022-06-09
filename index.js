@@ -56,6 +56,10 @@ class Index extends React.Component {
 	@observable updatedAppName = {};
 	@observable appRenaming = {};
 	@observable appRenamed = {};
+	@observable appStarting = {};
+	@observable appStarted = {};
+	@observable appStopping = {};
+	@observable appStopped = {};
 	connect() {
 		(async () => {
 			try {
@@ -90,6 +94,15 @@ class Index extends React.Component {
 				this.appLoading = false;
 			};
 		})();
+		this.eventSource && this.eventSource.close();
+		this.eventSource = new EventSource(`${this.endpoint}/event/`, { withCredentials: true });
+		this.eventSource.addEventListener('stop', e => {
+			var [source, data] = e.data.split('\n');
+			data = JSON.parse(data);
+			var [, type, name] = source.split('/');
+			if (type == 'app')
+				this.app[name].running = false;
+		});
 	}
 	async addProxyRule() {
 		try {
@@ -287,6 +300,32 @@ class Index extends React.Component {
 			this.appRenamed[name] = error;
 			this.appRenaming[name] = false;
 		};
+	}
+	async start(name) {
+		try {
+			var app = this.app[name];
+			this.appStarting[name] = true;
+			this.appStarted[name] = await axios.post(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}/start`);
+			this.appStarting[name] = false;
+			app.running = true;
+		}
+		catch (error) {
+			this.appStarted[name] = error;
+			this.appStarting[name] = false;
+		}
+	}
+	async stop(name) {
+		try {
+			var app = this.app[name];
+			this.appStopping[name] = true;
+			this.appStopped[name] = await axios.post(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}/stop`);
+			this.appStopping[name] = false;
+			app.running = false;
+		}
+		catch (error) {
+			this.appStopped[name] = error;
+			this.appStopping[name] = false;
+		}
 	}
 	render() {
 		var proxyRule = this.proxyRule,
@@ -508,6 +547,13 @@ class Index extends React.Component {
 														value.port
 												}</td>
 												<td>
+													{value.running ? "running" : "not running"}
+													{this.appStopping[name] && "(Stopping..)"}
+													{this.appStopped[name] instanceof Error && `error: ${this.appStopped[name].response?.data || this.appStopped[name].message}`}
+													{this.appStarting[name] && "(Starting..)"}
+													{this.appStarted[name] instanceof Error && `error: ${this.appStarted[name].response?.data || this.appStarted[name].message}`}
+													{value.running && !this.appStopping[name] && <button onClick={() => { this.stop(name); }} title="stop">⏹</button>}
+													{!value.running && !this.appStarting[name] && <button onClick={() => { this.start(name); }} title="start">▶️</button>}
 													<button title="delete" onClick={this.deleteApp.bind(this, name)}>❌</button>
 													{appDeleting[name] && "(Deleting..)"}
 													{appDeleted[name] instanceof Error && `error: ${appDeleted[name].response?.data || appDeleted[name].message}`}
