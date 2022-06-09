@@ -132,6 +132,9 @@ class Index extends React.Component {
 			this.proxyRule[name] = value;
 			this.newProxyRule.name = '';
 			this.newProxyRule.value = '';
+			setTimeout(() => {
+				document.getElementById('add-proxy-rule').elements[0].focus();
+			}, 0);
 		} catch (error) {
 			this.proxyRuleAdded = error;
 			this.proxyRuleAdding = false;
@@ -187,6 +190,9 @@ class Index extends React.Component {
 			this.vhost[name] = value;
 			this.newVHost.name = '';
 			this.newVHost.value = '';
+			setTimeout(() => {
+				document.getElementById('add-vhost').elements[0].focus();
+			}, 0);
 		} catch (error) {
 			this.vhostAdded = error;
 			this.vhostAdding = false;
@@ -249,6 +255,9 @@ class Index extends React.Component {
 			this.app[name] = value;
 			this.newApp.name = '';
 			this.newApp.value = { type: 'standalone', module: "", arguments: "", port: '' };
+			setTimeout(() => {
+				document.getElementById('add-app').elements[0].focus();
+			}, 0);
 		} catch (error) {
 			this.appAdded = error;
 			this.appAdding = false;
@@ -356,6 +365,9 @@ class Index extends React.Component {
 			var name = location.substr(location.indexOf('/', 1) + 1);
 			this.module[name] = value;
 			this.newModule.value = { source: '' };
+			setTimeout(() => {
+				document.getElementById('add-module').elements[0].focus();
+			}, 0);
 		} catch (error) {
 			this.moduleAdded = error;
 			this.moduleAdding = false;
