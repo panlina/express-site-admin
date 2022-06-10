@@ -240,7 +240,6 @@ class Index extends React.Component {
 	}
 	async addApp() {
 		try {
-			this.appAdding = true;
 			var { name, value } = this.newApp;
 			try {
 				var value = this.appEditingStateToValue(value);
@@ -249,6 +248,7 @@ class Index extends React.Component {
 				alert(e);
 				return;
 			}
+			this.appAdding = true;
 			var response = await axios.put(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
 			this.appAdded = response.data;
 			this.appAdding = false;
@@ -295,7 +295,6 @@ class Index extends React.Component {
 	}
 	async updateApp(name) {
 		try {
-			this.appUpdating[name] = true;
 			try {
 				var value = this.appEditingStateToValue(this.updatedApp[name]);
 			}
@@ -303,6 +302,7 @@ class Index extends React.Component {
 				alert(e);
 				return;
 			}
+			this.appUpdating[name] = true;
 			var response = await axios.put(`${this.endpoint}/app/${encodeURIComponent(name || 'default')}`, JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
 			this.appUpdated[name] = response.data;
 			this.appUpdating[name] = false;
