@@ -43,7 +43,7 @@ class Index extends React.Component {
 	@observable vhostRenamed = {};
 	@observable appLoading = false;
 	@observable app = undefined;
-	@observable newApp = { name: '', value: { type: 'standalone', module: "", arguments: "", env: "", port: '' } };
+	@observable newApp = { name: '', value: { type: 'standalone', module: "", arguments: "", cwd: "", env: "", port: '' } };
 	@observable appAdding = false;
 	@observable appAdded = undefined;
 	@observable appDeleting = {};
@@ -254,7 +254,7 @@ class Index extends React.Component {
 			this.appAdding = false;
 			this.app[name] = value;
 			this.newApp.name = '';
-			this.newApp.value = { type: 'standalone', module: "", arguments: "", env: "", port: '' };
+			this.newApp.value = { type: 'standalone', module: "", arguments: "", cwd: "", env: "", port: '' };
 			setTimeout(() => {
 				document.getElementById('add-app').elements[0].focus();
 			}, 0);
@@ -285,6 +285,7 @@ class Index extends React.Component {
 		return {
 			...app,
 			arguments: JSON.parse(app.arguments),
+			cwd: app.cwd || null,
 			env: JSON.parse(app.env),
 			port: app.port ? +app.port : null
 		};
@@ -293,6 +294,7 @@ class Index extends React.Component {
 		return {
 			...app,
 			arguments: JSON.stringify(app.arguments),
+			cwd: app.cwd || "",
 			env: JSON.stringify(app.env),
 			port: app.port != null ? app.port.toString() : ''
 		};
@@ -613,6 +615,11 @@ class Index extends React.Component {
 												}</td>
 												<td>{
 													appEditing[name] ?
+														<input type="text" form={`update-app-${name}`} disabled={appUpdating[name]} value={updatedApp[name].cwd} onChange={e => { updatedApp[name].cwd = e.target.value; }} /> :
+														value.cwd
+												}</td>
+												<td>{
+													appEditing[name] ?
 														<input type="text" form={`update-app-${name}`} disabled={appUpdating[name]} value={updatedApp[name].env} onChange={e => { updatedApp[name].env = e.target.value; }} /> :
 														JSON.stringify(value.env)
 												}</td>
@@ -654,7 +661,7 @@ class Index extends React.Component {
 												<form id={`update-app-${name}`} onSubmit={e => { this.updateApp(name); e.preventDefault(); }}></form>
 												<form id={`rename-app-${name}`} onSubmit={e => { this.renameApp(name); e.preventDefault(); }}></form>
 											</tr>) :
-										[<tr><td colSpan={6}>(no apps)</td></tr>]
+										[<tr><td colSpan={7}>(no apps)</td></tr>]
 								}
 								<tr>
 									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.name} onChange={e => { newApp.name = e.target.value; }} /></td>
@@ -665,6 +672,7 @@ class Index extends React.Component {
 									</select></td>
 									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.module} onChange={e => { newApp.value.module = e.target.value; }} /></td>
 									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.arguments} onChange={e => { newApp.value.arguments = e.target.value; }} /></td>
+									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.cwd} onChange={e => { newApp.value.cwd = e.target.value; }} /></td>
 									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.env} onChange={e => { newApp.value.env = e.target.value; }} /></td>
 									<td><input type="number" min="0" max="65535" form="add-app" disabled={appAdding} value={newApp.value.port} onChange={e => { newApp.value.port = e.target.value; }} /></td>
 									<td>
