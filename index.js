@@ -585,6 +585,15 @@ class Index extends React.Component {
 						`error: ${app.response?.data || app.message}` :
 						<>
 							<table>
+								<tr>
+									<th>name</th>
+									<th>type</th>
+									<th>module</th>
+									<th>arguments</th>
+									<th>cwd</th>
+									<th>env</th>
+									<th>port</th>
+								</tr>
 								{
 									Object.entries(app).length ?
 										Object.entries(app)
