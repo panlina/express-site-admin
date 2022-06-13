@@ -608,7 +608,7 @@ class Index extends React.Component {
 														<select form={`update-app-${name}`} required disabled={appUpdating[name]} value={updatedApp[name].type} onChange={e => { updatedApp[name].type = e.target.value; }}>
 															<option>middleware</option>
 															<option>standalone</option>
-															<option>npm-start</option>
+															<option>command</option>
 														</select> :
 														value.type
 												}</td>
@@ -677,7 +677,7 @@ class Index extends React.Component {
 									<td><select form="add-app" required disabled={appAdding} value={newApp.value.type} onChange={e => { newApp.value.type = e.target.value; }}>
 										<option>middleware</option>
 										<option>standalone</option>
-										<option>npm-start</option>
+										<option>command</option>
 									</select></td>
 									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.module} onChange={e => { newApp.value.module = e.target.value; }} /></td>
 									<td><input type="text" form="add-app" disabled={appAdding} value={newApp.value.arguments} onChange={e => { newApp.value.arguments = e.target.value; }} /></td>
