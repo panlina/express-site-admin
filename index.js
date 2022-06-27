@@ -472,7 +472,7 @@ class Index extends React.Component {
 														value
 												}</td>
 												<td>
-													<button title="delete" onClick={this.deleteProxyRule.bind(this, name)}>❌</button>
+													{!proxyRuleDeleting[name] && <button title="delete" onClick={this.deleteProxyRule.bind(this, name)}>❌</button>}
 													{proxyRuleDeleting[name] && "(deleting..)"}
 													{proxyRuleDeleted[name] instanceof Error && `error: ${proxyRuleDeleted[name].response?.data || proxyRuleDeleted[name].message}`}
 													{
@@ -480,7 +480,7 @@ class Index extends React.Component {
 															<button onClick={() => { proxyRuleEditing[name] = false; }}>cancel</button>
 															<button form={`update-proxy-rule-${name}`}>submit</button>
 														</> :
-															<button title="edit" onClick={() => { updatedProxyRule[name] = proxyRule[name]; proxyRuleEditing[name] = true; }}>🖊</button>
+															!proxyRuleUpdating[name] && <button title="edit" onClick={() => { updatedProxyRule[name] = proxyRule[name]; proxyRuleEditing[name] = true; }}>🖊</button>
 													}
 													{proxyRuleUpdating[name] && "(updating..)"}
 													{proxyRuleUpdated[name] instanceof Error && `error: ${proxyRuleUpdated[name].response?.data || proxyRuleUpdated[name].message}`}
@@ -489,7 +489,7 @@ class Index extends React.Component {
 															<button onClick={() => { proxyRuleNameEditing[name] = false; }}>cancel</button>
 															<button form={`rename-proxy-rule-${name}`}>submit</button>
 														</> :
-															<button onClick={() => { updatedProxyRuleName[name] = name; proxyRuleNameEditing[name] = true; }}>rename</button>
+															!proxyRuleRenaming[name] && <button onClick={() => { updatedProxyRuleName[name] = name; proxyRuleNameEditing[name] = true; }}>rename</button>
 													}
 													{proxyRuleRenaming[name] && "(renaming..)"}
 													{proxyRuleRenamed[name] instanceof Error && `error: ${proxyRuleRenamed[name].response?.data || proxyRuleRenamed[name].message}`}
@@ -536,7 +536,7 @@ class Index extends React.Component {
 														value
 												}</td>
 												<td>
-													<button title="delete" onClick={this.deleteVHost.bind(this, name)}>❌</button>
+													{!vhostDeleting[name] && <button title="delete" onClick={this.deleteVHost.bind(this, name)}>❌</button>}
 													{vhostDeleting[name] && "(deleting..)"}
 													{vhostDeleted[name] instanceof Error && `error: ${vhostDeleted[name].response?.data || vhostDeleted[name].message}`}
 													{
@@ -544,7 +544,7 @@ class Index extends React.Component {
 															<button onClick={() => { vhostEditing[name] = false; }}>cancel</button>
 															<button form={`update-vhost-${name}`}>submit</button>
 														</> :
-															<button title="edit" onClick={() => { updatedVHost[name] = vhost[name]; vhostEditing[name] = true; }}>🖊</button>
+															!vhostUpdating[name] && <button title="edit" onClick={() => { updatedVHost[name] = vhost[name]; vhostEditing[name] = true; }}>🖊</button>
 													}
 													{vhostUpdating[name] && "(updating..)"}
 													{vhostUpdated[name] instanceof Error && `error: ${vhostUpdated[name].response?.data || vhostUpdated[name].message}`}
@@ -553,7 +553,7 @@ class Index extends React.Component {
 															<button onClick={() => { vhostNameEditing[name] = false; }}>cancel</button>
 															<button form={`rename-vhost-${name}`}>submit</button>
 														</> :
-															<button onClick={() => { updatedVHostName[name] = name; vhostNameEditing[name] = true; }}>rename</button>
+															!vhostRenaming[name] && <button onClick={() => { updatedVHostName[name] = name; vhostNameEditing[name] = true; }}>rename</button>
 													}
 													{vhostRenaming[name] && "(renaming..)"}
 													{vhostRenamed[name] instanceof Error && `error: ${vhostRenamed[name].response?.data || vhostRenamed[name].message}`}
@@ -651,7 +651,7 @@ class Index extends React.Component {
 													{this.appStarted[name] instanceof Error && `error: ${this.appStarted[name].response?.data || this.appStarted[name].message}`}
 													{value.running && !this.appStopping[name] && <button onClick={() => { this.stop(name); }} title="stop">⏹</button>}
 													{!value.running && !this.appStarting[name] && <button onClick={() => { this.start(name); }} title="start">▶️</button>}
-													<button title="delete" onClick={this.deleteApp.bind(this, name)}>❌</button>
+													{!appDeleting[name] && <button title="delete" onClick={this.deleteApp.bind(this, name)}>❌</button>}
 													{appDeleting[name] && "(deleting..)"}
 													{appDeleted[name] instanceof Error && `error: ${appDeleted[name].response?.data || appDeleted[name].message}`}
 													{
@@ -659,7 +659,7 @@ class Index extends React.Component {
 															<button onClick={() => { appEditing[name] = false; }}>cancel</button>
 															<button form={`update-app-${name}`}>submit</button>
 														</> :
-															<button title="edit" onClick={() => { updatedApp[name] = this.appValueToEditingState(app[name]); appEditing[name] = true; }}>🖊</button>
+															!appUpdating[name] && <button title="edit" onClick={() => { updatedApp[name] = this.appValueToEditingState(app[name]); appEditing[name] = true; }}>🖊</button>
 													}
 													{appUpdating[name] && "(updating..)"}
 													{appUpdated[name] instanceof Error && `error: ${appUpdated[name].response?.data || appUpdated[name].message}`}
@@ -668,7 +668,7 @@ class Index extends React.Component {
 															<button onClick={() => { appNameEditing[name] = false; }}>cancel</button>
 															<button form={`rename-app-${name}`}>submit</button>
 														</> :
-															<button onClick={() => { updatedAppName[name] = name; appNameEditing[name] = true; }}>rename</button>
+															!appRenaming[name] && <button onClick={() => { updatedAppName[name] = name; appNameEditing[name] = true; }}>rename</button>
 													}
 													{appRenaming[name] && "(renaming..)"}
 													{appRenamed[name] instanceof Error && `error: ${appRenamed[name].response?.data || appRenamed[name].message}`}
@@ -717,7 +717,7 @@ class Index extends React.Component {
 												<td>{name}</td>
 												<td>{value.source}</td>
 												<td>
-													<button title="delete" onClick={this.deleteModule.bind(this, name)}>❌</button>
+													{!moduleDeleting[name] && <button title="delete" onClick={this.deleteModule.bind(this, name)}>❌</button>}
 													{moduleDeleting[name] && "(deleting..)"}
 													{moduleDeleted[name] instanceof Error && `error: ${moduleDeleted[name].response?.data || moduleDeleted[name].message}`}
 												</td>
