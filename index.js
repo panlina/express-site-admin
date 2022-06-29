@@ -659,7 +659,7 @@ class Index extends React.Component {
 													{this.appStarted[name] instanceof Error && `error: ${this.appStarted[name].response?.data || this.appStarted[name].message}`}
 													{value.running && !this.appStopping[name] && <button onClick={() => { this.stop(name); }} title="stop">⏹</button>}
 													{!value.running && !this.appStarting[name] && <button onClick={() => { this.start(name); }} title="start">▶️</button>}
-													{!appEditing[name] && !appUpdating[name] && !appNameEditing[name] && !appRenaming[name] && !appDeleting[name] &&
+													{!value.running && !this.appStarting[name] && !this.appStopping[name] && !appEditing[name] && !appUpdating[name] && !appNameEditing[name] && !appRenaming[name] && !appDeleting[name] &&
 														<button title="delete" onClick={this.deleteApp.bind(this, name)}>❌</button>
 													}
 													{appDeleting[name] && "(deleting..)"}
@@ -669,7 +669,7 @@ class Index extends React.Component {
 															<button onClick={() => { appEditing[name] = false; }}>cancel</button>
 															<button form={`update-app-${name}`}>submit</button>
 														</> :
-															!appDeleting[name] && !appNameEditing[name] && !appRenaming[name] && !appUpdating[name] &&
+															!value.running && !this.appStarting[name] && !this.appStopping[name] && !appDeleting[name] && !appNameEditing[name] && !appRenaming[name] && !appUpdating[name] &&
 																<button title="edit" onClick={() => { updatedApp[name] = this.appValueToEditingState(app[name]); appEditing[name] = true; }}>🖊</button>
 													}
 													{appUpdating[name] && "(updating..)"}
@@ -679,7 +679,7 @@ class Index extends React.Component {
 															<button onClick={() => { appNameEditing[name] = false; }}>cancel</button>
 															<button form={`rename-app-${name}`}>submit</button>
 														</> :
-															!appDeleting[name] && !appEditing[name] && !appUpdating[name] && !appRenaming[name] &&
+															!value.running && !this.appStarting[name] && !this.appStopping[name] && !appDeleting[name] && !appEditing[name] && !appUpdating[name] && !appRenaming[name] &&
 																<button onClick={() => { updatedAppName[name] = name; appNameEditing[name] = true; }}>rename</button>
 													}
 													{appRenaming[name] && "(renaming..)"}
