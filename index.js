@@ -43,7 +43,7 @@ class Index extends React.Component {
 	@observable vhostRenamed = {};
 	@observable appLoading = false;
 	@observable app = undefined;
-	@observable newApp = { name: '', value: { type: 'standalone', module: "", arguments: "", cwd: "", env: "", shell: false, port: '' } };
+	@observable newApp = { name: '', value: { type: 'standalone', module: "", arguments: "[]", cwd: "", env: "{}", shell: false, port: '' } };
 	@observable appAdding = false;
 	@observable appAdded = undefined;
 	@observable appDeleting = {};
