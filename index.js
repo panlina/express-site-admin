@@ -595,8 +595,8 @@ class Index extends React.Component {
 													{this.appStopped[name] instanceof Error && `error: ${this.appStopped[name].response?.data || this.appStopped[name].message}`}
 													{this.appStarting[name] && "(starting..)"}
 													{this.appStarted[name] instanceof Error && `error: ${this.appStarted[name].response?.data || this.appStarted[name].message}`}
-													{value.running && !this.appStopping[name] && <button onClick={() => { this.stop(name); }} title="stop">⏹</button>}
-													{!value.running && !this.appStarting[name] && <button onClick={() => { this.start(name); }} title="start">▶️</button>}
+													{!appDeleting[name] && !appEditing[name] && !appUpdating[name] && !appNameEditing[name] && !appRenaming[name] && value.running && !this.appStopping[name] && <button onClick={() => { this.stop(name); }} title="stop">⏹</button>}
+													{!appDeleting[name] && !appEditing[name] && !appUpdating[name] && !appNameEditing[name] && !appRenaming[name] && !value.running && !this.appStarting[name] && <button onClick={() => { this.start(name); }} title="start">▶️</button>}
 													{!value.running && !this.appStarting[name] && !this.appStopping[name] && !appEditing[name] && !appUpdating[name] && !appNameEditing[name] && !appRenaming[name] && !appDeleting[name] &&
 														<button title="delete" onClick={this.deleteApp.bind(this, name)}>❌</button>
 													}
