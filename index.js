@@ -96,12 +96,23 @@ class Index extends React.Component {
 		})();
 		this.eventSource && this.eventSource.close();
 		this.eventSource = new EventSource(`${this.endpoint}/event/`, { withCredentials: true });
+		this.eventSource.addEventListener('start', e => {
+			var [source, data] = e.data.split('\n');
+			data = JSON.parse(data);
+			var [, type, name] = source.split('/');
+			if (type == 'app') {
+				this.app[name]._port = data._port;
+				this.app[name].running = false;
+			}
+		});
 		this.eventSource.addEventListener('stop', e => {
 			var [source, data] = e.data.split('\n');
 			data = JSON.parse(data);
 			var [, type, name] = source.split('/');
-			if (type == 'app')
+			if (type == 'app') {
+				delete this.app[name]._port;
 				this.app[name].running = false;
+			}
 		});
 	}
 	async addProxyRule() {
@@ -545,6 +556,7 @@ class Index extends React.Component {
 									<th>cwd</th>
 									<th>env</th>
 									<th>port</th>
+									<th>actual port</th>
 								</tr>
 								{
 									Object.entries(app).length ?
@@ -589,6 +601,7 @@ class Index extends React.Component {
 														<input type="number" min="0" max="65535" form={`update-app-${name}`} disabled={appUpdating[name]} value={updatedApp[name].port} onChange={e => { updatedApp[name].port = e.target.value; }} /> :
 														value.port
 												}</td>
+												<td>{value._port}</td>
 												<td>
 													{value.running ? "running" : "not running"}
 													{this.appStopping[name] && "(stopping..)"}
